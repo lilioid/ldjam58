@@ -6,6 +6,7 @@
 #[cfg(feature = "dev")]
 mod dev_tools;
 mod asset_tracking;
+mod screens;
 
 use bevy::{asset::AssetMetaCheck, prelude::*};
 
