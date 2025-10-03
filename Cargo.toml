@@ -3,6 +3,24 @@ name = "ldjam58"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+default = ["dev_native"]
+dev = [
+    # Improve compile times for dev builds by linking Bevy as a dynamic library.
+    "bevy/dynamic_linking",
+    "bevy/bevy_dev_tools",
+    "bevy/bevy_ui_debug",
+    # Improve error messages coming from Bevy
+    "bevy/track_location",
+]
+dev_native = [
+    "dev",
+    # Enable asset hot reloading for native dev builds.
+    "bevy/file_watcher",
+    # Enable embedded asset hot reloading for native dev builds.
+    "bevy/embedded_watcher",
+]
+
 [dependencies]
 bevy = { version = "0.17.1", features = ["dynamic_linking"] }
 
