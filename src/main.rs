@@ -9,6 +9,7 @@ mod asset_tracking;
 mod screens;
 
 use bevy::{asset::AssetMetaCheck, prelude::*};
+use bevy::log::{Level, LogPlugin};
 
 fn main() -> AppExit {
     App::new().add_plugins(AppPlugin).run()
@@ -52,6 +53,10 @@ impl Plugin for AppPlugin {
                         ..default()
                     }
                         .into(),
+                    ..default()
+                })
+                .set(LogPlugin {
+                    filter: "info,ldjam58=debug".to_string(),
                     ..default()
                 }),
         );
