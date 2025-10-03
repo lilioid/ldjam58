@@ -5,6 +5,7 @@
 
 #[cfg(feature = "dev")]
 mod dev_tools;
+mod asset_tracking;
 
 use bevy::{asset::AssetMetaCheck, prelude::*};
 
@@ -39,10 +40,11 @@ impl Plugin for AppPlugin {
 
         // add our own plugins
         app.add_plugins((
+            asset_tracking::plugin,
             #[cfg(feature = "dev")]
             dev_tools::plugin,
         ));
-        
+
         // Order new `AppSystems` variants by adding them here:
         app.configure_sets(
             Update,
