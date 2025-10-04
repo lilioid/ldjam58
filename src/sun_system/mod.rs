@@ -57,12 +57,19 @@ pub(super) fn plugin(app: &mut App) {
 pub struct SolarSystemAssets {
     #[dependency]
     sun: Handle<Image>,
+
     #[dependency]
     pub(crate) collector: Handle<Image>,
+
     #[dependency]
     grid: Handle<Image>,
+
     #[dependency]
     pub(crate) bg: Handle<Image>,
+
+    #[dependency]
+    pub(crate) font: Handle<Font>,
+
 }
 
 #[derive(Component)]
@@ -80,6 +87,7 @@ impl FromWorld for SolarSystemAssets {
             grid: assets.load("retro_grid.png"),
             collector: assets.load("satellite.png"),
             bg: assets.load("retro_grid_bg.png"),
+            font: assets.load("fonts/lucon.ttf"),
         }
     }
 }
@@ -97,56 +105,6 @@ pub fn init_sun_system(mut commands: Commands, solar_system_assets: Res<SolarSys
         Sprite::from(solar_system_assets.sun.clone()),
         Sun
     ));
-}
-
-pub fn setup_tiled_grid(
-    mut commands: Commands,
-    solar_system_assets: Res<SolarSystemAssets>,
-    windows: Query<&Window, With<PrimaryWindow>>,
-) {
-    info!("Adding tiled grid");
-    let Ok(win) = windows.single() else {
-        return;
-    };
-    info!("after check grid");
-
-    // World size per tile (match your grid cell size)
-    let tile_world_size: f32 = 24.0;
-    let margin_tiles: i32 = 2;
-
-    let cols = ((win.width() / tile_world_size).ceil() as i32) + margin_tiles * 2 + 1;
-    let rows = ((win.height() / tile_world_size).ceil() as i32) + margin_tiles * 2 + 1;
-
-    let parent = commands
-        .spawn((
-            Name::new("RetroGrid"),
-            Visibility::default(),
-            TiledGrid {
-                cols,
-                rows,
-                tile_world_size,
-            },
-            // Keep behind everything
-            Transform::from_xyz(0.0, 0.0, -1.0),
-            GlobalTransform::default(),
-        ))
-        .id();
-
-    for row in 0..rows * rows {
-        for col in 0..cols * cols {
-            commands.entity(parent).with_children(|p| {
-                p.spawn((
-                    Transform::from_translation(Vec3::new(
-                        (col * 18 - (win.width() / 2.0f32) as i32) as f32,
-                        (row * 18 - (win.height() / 2.0f32) as i32) as f32,
-                        0.0,
-                    ))
-                    .with_scale(Vec3::splat(0.015)),
-                    Sprite::from(solar_system_assets.grid.clone()),
-                ));
-            });
-        }
-    }
 }
 
 pub fn setup_grid_image(mut commands: Commands, solar_system_assets: Res<SolarSystemAssets>) {
