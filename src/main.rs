@@ -8,6 +8,7 @@ mod asset_tracking;
 mod dev_tools;
 mod physics;
 mod screens;
+mod sun_system;
 
 use bevy::log::{Level, LogPlugin};
 use bevy::{asset::AssetMetaCheck, prelude::*};
@@ -52,6 +53,7 @@ impl Plugin for AppPlugin {
             #[cfg(feature = "dev")]
             dev_tools::plugin,
             screens::plugin,
+            sun_system::plugin,
         ));
 
         // Order new `AppSystems` variants by adding them here:
