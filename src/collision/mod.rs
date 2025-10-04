@@ -3,6 +3,7 @@ use bevy::ecs::entity::unique_slice::cast_slice_of_mut_unique_entity_slice_mut;
 use bevy::ecs::system::entity_command::remove;
 use bevy::prelude::*;
 use crate::dev_tools::is_debug_enabled;
+use crate::physics::calc_gravity::{Attractee, Attractor};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(Update, (check_for_collisions));
@@ -15,11 +16,8 @@ pub struct HitBox {
     pub radius: f32,
 }
 
-<<<<<<< Updated upstream
-=======
 #[derive(Component)] struct ToDespawn;
 
->>>>>>> Stashed changes
 pub fn is_colliding(obj1_transform: &Transform, obj1_hitbox: &HitBox,obj2_transform: &Transform, obj2_hitbox: &HitBox) -> bool {
     let distance = obj1_transform.translation.distance(obj2_transform.translation);
     if distance < (obj1_hitbox.radius+obj2_hitbox.radius) {

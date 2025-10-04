@@ -2,7 +2,6 @@
 
 use bevy::input::mouse::MouseWheel;
 use crate::sun_system::{init_sun_system, setup_grid_image};
-use crate::sun_system::setup_tiled_grid;
 use bevy::prelude::*;
 use crate::screens::Screen;
 
