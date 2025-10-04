@@ -61,7 +61,16 @@ pub struct SolarSystemAssets {
     pub(crate) collector: Handle<Image>,
     #[dependency]
     grid: Handle<Image>,
+    #[dependency]
+    pub(crate) bg: Handle<Image>,
 }
+
+#[derive(Component)]
+pub struct Satellite;
+
+#[derive(Component)]
+pub struct Sun;
+
 
 impl FromWorld for SolarSystemAssets {
     fn from_world(world: &mut World) -> Self {
@@ -70,6 +79,7 @@ impl FromWorld for SolarSystemAssets {
             sun: assets.load("sun.png"),
             grid: assets.load("retro_grid.png"),
             collector: assets.load("satellite.png"),
+            bg: assets.load("retro_grid_bg.png"),
         }
     }
 }
@@ -85,20 +95,21 @@ pub fn init_sun_system(mut commands: Commands, solar_system_assets: Res<SolarSys
         Name::new("Sun"),
         Transform::from_translation(Vec3::ZERO).with_scale(Vec3::splat(0.02)),
         Sprite::from(solar_system_assets.sun.clone()),
+        Sun
     ));
 
-    info!("Adding orbiting satellite");
-    commands.spawn((
-        Name::new("satelite"),
-        Attractee,
-        NavigationInstruments,
-        Thruster::new(ThrusterDirection::RadialOut, 4.0),
-        GravityForce::default(),
-        Velocity(Vec2::new(0.0, 10.0)),
-        Mass(1.0),
-        Transform::from_translation(Vec3::new(50.0, 0.0, 0.0)).with_scale(Vec3::splat(0.015)),
-        Sprite::from(solar_system_assets.collector.clone()),
-    ));
+    // info!("Adding orbiting satellite");
+    // commands.spawn((
+    //     Name::new("satelite"),
+    //     Attractee,
+    //     NavigationInstruments,
+    //     Thruster::new(ThrusterDirection::RadialOut, 4.0),
+    //     GravityForce::default(),
+    //     Velocity(Vec2::new(0.0, 10.0)),
+    //     Mass(1.0),
+    //     Transform::from_translation(Vec3::new(50.0, 0.0, 0.0)).with_scale(Vec3::splat(0.015)),
+    //     Sprite::from(solar_system_assets.collector.clone()),
+    // ));
 }
 
 pub fn setup_tiled_grid(
@@ -149,4 +160,13 @@ pub fn setup_tiled_grid(
             });
         }
     }
+}
+
+pub fn setup_grid_image(mut commands: Commands, solar_system_assets: Res<SolarSystemAssets>) {
+    commands.spawn((
+        Name::new("GridImage"),
+        Sprite::from(solar_system_assets.bg.clone()),
+        Transform::from_translation(Vec3::new(0.0, 0.0, -5.0)).with_scale(Vec3::splat(0.15))
+
+    ));
 }

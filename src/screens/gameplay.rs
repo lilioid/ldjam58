@@ -1,7 +1,7 @@
 //! The screen state for the main gameplay.
 
 use bevy::input::mouse::MouseWheel;
-use crate::sun_system::init_sun_system;
+use crate::sun_system::{init_sun_system, setup_grid_image};
 use crate::sun_system::setup_tiled_grid;
 use bevy::prelude::*;
 use crate::screens::Screen;
@@ -14,7 +14,8 @@ struct CameraZoom {
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::Gameplay), setup_scene);
     app.add_systems(OnEnter(Screen::Gameplay), init_sun_system);
-    app.add_systems(OnEnter(Screen::Gameplay), setup_tiled_grid);
+    // app.add_systems(OnEnter(Screen::Gameplay), setup_tiled_grid);
+    app.add_systems(OnEnter(Screen::Gameplay), setup_grid_image);
     app.add_systems(Update, camera_zoom.run_if(in_state(Screen::Gameplay)));
 }
 
@@ -25,7 +26,6 @@ fn setup_scene(mut commands: Commands) {
         Transform::from_translation(Vec3::new(0.0, 0.0, 0.0)),
         CameraZoom { level: 2 },
     ));
-
 }
 
 fn camera_zoom(

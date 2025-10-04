@@ -11,6 +11,8 @@ mod screens;
 mod sun_system;
 mod launching;
 mod collision;
+mod score;
+mod hud;
 
 use bevy::log::LogPlugin;
 use bevy::{asset::AssetMetaCheck, prelude::*};
@@ -64,6 +66,8 @@ impl Plugin for AppPlugin {
             sun_system::plugin,
             launching::plugin,
             collision::plugin,
+            score::plugin,
+            hud::HudPlugin
         ));
 
         // Tell bevy that our AppSystems should always be executed in the below order

@@ -6,7 +6,7 @@ use crate::physics::calc_gravity::Attractee;
 use crate::physics::directional_forces::{GravityForce, Mass};
 use crate::physics::velocity::Velocity;
 use crate::sun_system::navigation_instruments::NavigationInstruments;
-use crate::sun_system::SolarSystemAssets;
+use crate::sun_system::{Satellite, SolarSystemAssets};
 use crate::sun_system::thruster::{Thruster, ThrusterDirection};
 
 #[derive(Component)]
@@ -104,6 +104,7 @@ fn start_new_launch(
     force_multiplier = force_multiplier * 5.0;
 
     commands.spawn((
+        Name::new("Collector"),
         Attractee,
         GravityForce::default(),
         Velocity(launch_direction.xy() * Vec2::splat(force_multiplier as f32)),
@@ -115,7 +116,8 @@ fn start_new_launch(
         HitBox {
             radius: 5.0
         },
-        NavigationInstruments
+        NavigationInstruments,
+        Satellite,
 
     ));
 
