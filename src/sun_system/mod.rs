@@ -91,7 +91,7 @@ pub fn init_sun_system(mut commands: Commands, solar_system_assets: Res<SolarSys
         Name::new("satelite"),
         Attractee,
         NavigationInstruments,
-        Thruster::new(ThrusterDirection::RadialIn, 4.0),
+        Thruster::new(ThrusterDirection::RadialOut, 4.0),
         GravityForce::default(),
         Velocity(Vec2::new(0.0, 10.0)),
         Mass(1.0),

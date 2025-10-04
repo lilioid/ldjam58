@@ -1,11 +1,12 @@
+use std::f32::consts::PI;
 use bevy::color::palettes::basic::GRAY;
 use crate::physics::calc_gravity::{calc_gravity_force, Attractee, Attractor};
 use crate::physics::directional_forces::{calc_velocity_change, Mass};
 use crate::physics::velocity::{calc_position_change, Velocity};
 use bevy::prelude::*;
 
-const PROJECTION_DELTA: f32 = 0.25;
-const PROJECTION_COUNT: usize = 100;
+const PROJECTION_DELTA: f32 = 0.5;
+const PROJECTION_MAX_COUNT: usize = 250;
 
 #[derive(Component, Debug, Default, Copy, Clone)]
 #[require(Transform, Velocity, Mass)]
@@ -33,14 +34,23 @@ fn draw_orbit_projection(
     mass: &Mass,
     velocity: &Velocity,
 ) {
+    let mut degrees_covered = 0.0;
+    
     let mut projected_trans = *transform;
     let mut projected_velocity = *velocity;
-    
-    for _ in 0..PROJECTION_COUNT {        
+
+    for _ in 0..PROJECTION_MAX_COUNT {
+        let last_trans = projected_trans.translation.xy();
+        
         let grav_force = calc_gravity_force(attractor_mass, attractor_trans, mass, &projected_trans);
         projected_velocity.0 += calc_velocity_change(grav_force, mass, PROJECTION_DELTA);
         projected_trans.translation += calc_position_change(&projected_velocity, PROJECTION_DELTA).extend(0.0);
-        
+
         gizmos.cross_2d(Isometry2d::from_translation(projected_trans.translation.xy()), 1.0, GRAY);
+
+        degrees_covered += last_trans.angle_to(projected_trans.translation.xy()) * 180.0 / PI;
+        if degrees_covered >= 350.0 {
+            break
+        }
     }
 }
