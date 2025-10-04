@@ -61,8 +61,7 @@ impl Plugin for AppPlugin {
             Update,
             (
                 AppSystems::RecordInput,
-                AppSystems::CalcPhysics,
-                AppSystems::ApplyPhysics,
+                AppSystems::Physics,
                 AppSystems::Update,
             )
                 .chain(),
@@ -80,9 +79,7 @@ enum AppSystems {
     /// Record player input.
     RecordInput,
     /// Calculate physical forces based on entity components
-    CalcPhysics,
-    /// Apply physical forces as movement
-    ApplyPhysics,
+    Physics,
     /// Do everything else (consider splitting this into further variants).
     Update,
 }

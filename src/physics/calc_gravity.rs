@@ -23,13 +23,11 @@ pub(super) fn calc_gravity(
         let pos2 = i_transform.translation.xy();
 
         let distance = pos1.distance(pos2);
-        let direction_angle = Vec2::X.angle_to(pos2 - pos1);
-        let direction = -(pos2 - pos1).normalize_or_zero();
+        let direction_angle = pos1 - pos2;
 
         let f = calc_gravity_force(attractor.0.0, i_mass.0, distance);
-        let directional_force = direction * f;
+        let directional_force = (Vec2::X * f).rotate(direction_angle);
 
-        //debug!("Applying gravity force between attractor {:?} and attractee {:?} -> {directional_force:?}", pos1, pos2);
         i_gravity_force.0 = directional_force.xy();
     });
 }
