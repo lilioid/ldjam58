@@ -14,7 +14,7 @@ mod collision;
 
 use bevy::log::LogPlugin;
 use bevy::{asset::AssetMetaCheck, prelude::*};
-use bevy::window::WindowResolution;
+use bevy::window::{WindowMode, WindowResolution};
 
 fn main() -> AppExit {
     App::new().add_plugins(AppPlugin).run()
@@ -37,8 +37,9 @@ impl Plugin for AppPlugin {
                 })
                 .set(WindowPlugin {
                     primary_window: Window {
-                        title: "Bevy New 2D".to_string(),
+                        title: "Type two".to_string(),
                         fit_canvas_to_parent: true,
+                        //mode: WindowMode::Fullscreen(MonitorSelection::Primary, VideoModeSelection::Current), Laggy
                         resolution: WindowResolution::new(1024, 576),
                         ..default()
                     }
