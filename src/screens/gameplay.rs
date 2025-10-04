@@ -1,21 +1,48 @@
 //! The screen state for the main gameplay.
 
+use bevy::input::mouse::MouseWheel;
 use crate::sun_system::init_sun_system;
 use bevy::prelude::*;
+use crate::screens::Screen;
+
+#[derive(Component)]
+struct CameraZoom {
+    level: usize,
+}
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_systems(OnEnter(super::Screen::Gameplay), setup_scene);
-    app.add_systems(OnEnter(super::Screen::Gameplay), init_sun_system);
+    app.add_systems(OnEnter(Screen::Gameplay), setup_scene);
+    app.add_systems(OnEnter(Screen::Gameplay), init_sun_system);
+    app.add_systems(Update, camera_zoom.run_if(in_state(Screen::Gameplay)));
 }
 
 fn setup_scene(mut commands: Commands) {
     commands.spawn((
         Name::new("Camera"),
         Camera2d,
-        Transform::from_translation(Vec3::new(0.0, 0.0, 0.0)).with_scale(Vec3::splat(0.25)),
-        ));
-
-    commands.spawn((
-        Name::new("Sun"),
+        Transform::from_translation(Vec3::new(0.0, 0.0, 0.0)),
+        CameraZoom { level: 2 },
     ));
+
+}
+
+fn camera_zoom(
+    mut scroll_evr: MessageReader<MouseWheel>,
+    mut query: Query<(&mut Transform, &mut CameraZoom), With<Camera>>,
+) {
+    //stepped zoom with predefined levels
+    let zoom_levels = [0.1, 0.15, 0.25, 0.5, 0.75, 1.0, 1.5, 2.0];
+
+    if let Ok((mut transform, mut camera_zoom)) = query.single_mut() {
+        for ev in scroll_evr.read() {
+            if ev.y > 0.0 && camera_zoom.level < zoom_levels.len() - 1 {
+                camera_zoom.level += 1;
+            } else if ev.y < 0.0 && camera_zoom.level > 0 {
+                camera_zoom.level -= 1;
+            }
+        }
+
+        let zoom_level = zoom_levels[camera_zoom.level];
+        transform.scale = Vec3::splat(zoom_level);
+    }
 }
