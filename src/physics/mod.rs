@@ -6,7 +6,7 @@ use crate::physics::apply_directional_force::{GravityForce, Mass};
 use crate::physics::velocity::Velocity;
 use crate::{AppSystems, PausableSystems};
 use bevy::prelude::*;
-use crate::physics::calc_gravity::Attractor;
+use crate::physics::calc_gravity::{Attractee, Attractor};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
@@ -24,27 +24,40 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(Startup, debug_init_system);
     app.add_systems(
         Update,
-        debug_force_system
-            .in_set(AppSystems::CalcPhysics)
-            .in_set(PausableSystems),
+        (draw_attractor, draw_attractee).in_set(AppSystems::Update)
     );
 }
 
 fn debug_init_system(mut commands: Commands) {
     debug!("Adding sun");
     commands.spawn((
-        Mass(100000.0),
         Attractor,
-        Transform::from_translation(Vec3::splat(0.0))
+        Mass(10000000000.0),
+        Transform::from_translation(Vec3::splat(0.0)),
     ));
-    
-    debug!("Adding orbiting sattelite");
+
+    debug!("Adding orbiting satellite");
     commands.spawn((
+        Attractee,
         GravityForce(Vec2::new(1.0, 0.0)),
         Velocity(Vec2::new(0.0, 0.0)),
         Mass(1.0),
-        Transform::from_translation(Vec3::new(1.0, 0.0, 0.0)),
+        Transform::from_translation(Vec3::new(50.0, 0.0, 0.0)),
     ));
 }
 
-fn debug_force_system(mut commands: Commands) {}
+fn draw_attractor(mut gizmos: Gizmos, query: Query<(&Transform), (With<Attractor>, Without<Attractee>)>) {
+    query.iter().for_each(|(i_trans)| {
+        let isometry = Isometry2d::new(i_trans.translation.xy(), Rot2::default());
+        let color = Color::srgb(1.0, 0.5, 0.0);
+        gizmos.circle_2d(isometry, 10.0, color);
+    });
+}
+
+fn draw_attractee(mut gizmos: Gizmos, query: Query<&Transform, (With<Attractee>, Without<Attractor>)>) {
+    query.iter().for_each(|(i_trans)| {
+        let isometry = Isometry2d::new(i_trans.translation.xy(), Rot2::default());
+        let color = Color::WHITE;
+        gizmos.circle_2d(isometry, 5.0, color);
+    });
+}
