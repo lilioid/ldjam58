@@ -3,9 +3,10 @@ mod calc_gravity;
 mod velocity;
 
 use crate::physics::apply_directional_force::{GravityForce, Mass};
+use crate::physics::velocity::Velocity;
 use crate::{AppSystems, PausableSystems};
 use bevy::prelude::*;
-use crate::physics::velocity::Velocity;
+use crate::physics::calc_gravity::Attractor;
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
@@ -30,12 +31,19 @@ pub(super) fn plugin(app: &mut App) {
 }
 
 fn debug_init_system(mut commands: Commands) {
-    debug!("Adding basic entity with forces");
+    debug!("Adding sun");
+    commands.spawn((
+        Mass(100000.0),
+        Attractor,
+        Transform::from_translation(Vec3::splat(0.0))
+    ));
+    
+    debug!("Adding orbiting sattelite");
     commands.spawn((
         GravityForce(Vec2::new(1.0, 0.0)),
         Velocity(Vec2::new(0.0, 0.0)),
         Mass(1.0),
-        Transform::from_translation(Vec3::new(0.0, 0.0, 0.0)),
+        Transform::from_translation(Vec3::new(1.0, 0.0, 0.0)),
     ));
 }
 
