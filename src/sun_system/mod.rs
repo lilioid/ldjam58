@@ -28,7 +28,7 @@ impl FromWorld for SolarSystemAssets {
         let assets = world.resource::<AssetServer>();
         Self {
             sun: assets.load("sun.png"),
-            collector: assets.load("collector_01.png"),
+            collector: assets.load("collector.png"),
         }
     }
 }
