@@ -20,7 +20,7 @@ pub struct SolarSystemAssets {
     #[dependency]
     sun: Handle<Image>,
     #[dependency]
-    collector: Handle<Image>,
+    pub(crate) collector: Handle<Image>,
 }
 
 impl FromWorld for SolarSystemAssets {

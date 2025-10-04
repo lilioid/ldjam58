@@ -9,12 +9,13 @@ pub(super) fn plugin(app: &mut App) {
 }
 
 fn setup_scene(mut commands: Commands) {
-    commands.spawn(Camera2d);
+    commands.spawn((
+        Name::new("Camera"),
+        Camera2d,
+        Transform::from_translation(Vec3::new(0.0, 0.0, 0.0)).with_scale(Vec3::splat(0.25)),
+        ));
 
     commands.spawn((
         Name::new("Sun"),
-        //Mesh2d(meshes.add(Circle::default())),
-        //MeshMaterial2d(materials.add(Color::from(YELLOW))),
-        //Transform::from_translation(Vec3::new(0.0, 0.0, 0.0)).with_scale(Vec3::splat(128.0)),
     ));
 }
