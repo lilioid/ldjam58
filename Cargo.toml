@@ -23,6 +23,14 @@ dev_native = [
 
 [dependencies]
 bevy = { version = "0.17.1", features = ["dynamic_linking"] }
+tracing = { version = "0.1", features = [
+    "max_level_debug",
+    "release_max_level_warn",
+] }
+
+[lints.rust]
+# Mark `bevy_lint` as a valid `cfg`, as it is set when the Bevy linter runs.
+unexpected_cfgs = { level = "warn", check-cfg = ["cfg(bevy_lint)"] }
 
 # Enable a small amount of optimization in the dev profile.
 [profile.dev]
@@ -31,6 +39,10 @@ opt-level = 1
 # Enable a large amount of optimization in the dev profile for dependencies.
 [profile.dev.package."*"]
 opt-level = 3
+
+# Remove expensive debug assertions due to <https://github.com/bevyengine/bevy/issues/14291>
+[profile.dev.package.wgpu-types]
+debug-assertions = false
 
 
 # Enable more optimization in the release profile at the cost of compile time.

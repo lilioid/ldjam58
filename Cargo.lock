@@ -2843,6 +2843,7 @@ name = "ldjam58"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "tracing",
 ]
 
 [[package]]
