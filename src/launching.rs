@@ -26,6 +26,8 @@ pub(super) fn plugin(app: &mut App) {
         (
             start_new_launch.run_if(input_just_released(MouseButton::Left)),
             record_launch_time.run_if(input_just_pressed(MouseButton::Left)),
+            deactivate_old_sats.run_if(input_just_released(MouseButton::Left)),
+
             update_launch_pad_ui,
         ),
     );
@@ -127,6 +129,14 @@ fn start_new_launch(
 fn record_launch_time(time: Res<Time>, mut launch_state: ResMut<LaunchState>) {
     if launch_state.launched_at_time.is_none() {
         launch_state.launched_at_time = Some(time.elapsed_secs_f64());
+    }
+}
+
+fn deactivate_old_sats(mut commands: Commands ,thruster_query: Query<Entity, (With<Thruster>, With<NavigationInstruments>)>) {
+    for entity in thruster_query.iter() {
+        let mut ec = commands.get_entity(entity).unwrap();
+        ec.remove::<Thruster>();
+        ec.remove::<NavigationInstruments>();
     }
 }
 
