@@ -1,10 +1,13 @@
 use bevy::color::palettes::basic::BLUE;
+use bevy::ecs::entity::unique_slice::cast_slice_of_mut_unique_entity_slice_mut;
+use bevy::ecs::system::entity_command::remove;
 use bevy::prelude::*;
 use crate::dev_tools::is_debug_enabled;
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(Update, (check_for_collisions));
     app.add_systems(Update, (draw_hitboxes).run_if(is_debug_enabled) );
+    app.add_systems(Update, cleanup );
 }
 
 #[derive(Component, Copy, Clone, Debug, PartialEq, Default)]
@@ -12,6 +15,11 @@ pub struct HitBox {
     pub radius: f32,
 }
 
+<<<<<<< Updated upstream
+=======
+#[derive(Component)] struct ToDespawn;
+
+>>>>>>> Stashed changes
 pub fn is_colliding(obj1_transform: &Transform, obj1_hitbox: &HitBox,obj2_transform: &Transform, obj2_hitbox: &HitBox) -> bool {
     let distance = obj1_transform.translation.distance(obj2_transform.translation);
     if distance < (obj1_hitbox.radius+obj2_hitbox.radius) {
@@ -21,20 +29,45 @@ pub fn is_colliding(obj1_transform: &Transform, obj1_hitbox: &HitBox,obj2_transf
     false
 }
 
-fn check_for_collisions(hitboxes: Query<(Entity, &Transform, &HitBox)>) {
-    for (entity, entity_transform, hitbox1) in hitboxes.iter() {
-        for (entity_check, check_transform, hitbox2) in hitboxes.iter() {
+fn check_for_collisions(mut commands: Commands, hitboxes: Query<(Entity, &Transform, &HitBox, Has<Attractor>, Has<Attractee>)>) {
+    for (entity, entity_transform, hitbox1,isAttractor, isAttractee) in hitboxes.iter() {
+        for (entity_check, check_transform, hitbox2,isAttractor2, isAttractee2) in hitboxes.iter() {
             if (entity == entity_check){
                 continue;
             }
             let distance = entity_transform.translation.distance(check_transform.translation);
             if distance < (hitbox1.radius+hitbox2.radius) {
+                if(isAttractor){//attractor involved delete attracted
+                    //delete attracted ( mark for cleanup system)
+                    commands.entity(entity_check).insert(ToDespawn);
+                }else if(isAttractor2){
+                    commands.entity(entity).insert(ToDespawn);
+                }else {
+                    commands.entity(entity).insert(ToDespawn);
+                    commands.entity(entity_check).insert(ToDespawn);
+                }
                 //info!("Collision found");
-                //
+                // if entity is not attractor delete
+                // attracted and attracted ?
             }
         }
     }
 }
+
+
+fn cleanup(mut commands: Commands, q: Query<Entity, With<ToDespawn>>) {
+    for e in &q {
+        if let Ok(mut ec) = commands.get_entity(e) {
+            ec.despawn();
+        }
+    }
+}
+/**
+collectors have hp, output, level
+lower hp decreases output
+fornow collectors die when colliding with each other
+**/
+
 
 fn draw_hitboxes(
     mut gizmos: Gizmos,
