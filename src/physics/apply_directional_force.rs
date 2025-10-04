@@ -15,10 +15,10 @@ pub(super) fn apply_directional_force(mut query: Query<(Option<&mut GravityForce
         let mut accumulated_forces = Vec2::ZERO;
         
         if let Some(mut gravity) = gravity {
-            accumulated_forces += gravity.0;
+            accumulated_forces += gravity.0 * time.delta_secs();
         }
         if let Some(mut thrust) = thrust {
-            accumulated_forces += thrust.0;
+            accumulated_forces += thrust.0 * time.delta_secs();
         }
         
         let acceleration: Vec2 = accumulated_forces / mass.0;
