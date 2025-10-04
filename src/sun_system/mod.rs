@@ -10,7 +10,22 @@ use bevy::color::palettes::basic::{GRAY, YELLOW};
 use bevy::input::common_conditions::{input_just_pressed, input_just_released};
 use bevy::prelude::*;
 use crate::screens::Screen;
+use bevy::window::PrimaryWindow;
+use crate::Projection;
 
+#[derive(Component)]
+struct TiledGrid {
+    cols: i32,
+    rows: i32,
+    tile_world_size: f32,
+}
+
+#[derive(Component)]
+struct GridIndex {
+    col: i32,
+    row: i32,
+}
+pub(crate) struct SunSystemPlugin;
 pub(super) fn plugin(app: &mut App) {
     app.load_resource::<SolarSystemAssets>();
     app.add_systems(
@@ -35,6 +50,8 @@ pub struct SolarSystemAssets {
     sun: Handle<Image>,
     #[dependency]
     pub(crate) collector: Handle<Image>,
+    #[dependency]
+    grid: Handle<Image>,
 }
 
 impl FromWorld for SolarSystemAssets {
@@ -42,6 +59,7 @@ impl FromWorld for SolarSystemAssets {
         let assets = world.resource::<AssetServer>();
         Self {
             sun: assets.load("sun.png"),
+            grid: assets.load("retro_grid.png"),
             collector: assets.load("collector.png"),
         }
     }
@@ -56,16 +74,45 @@ pub fn init_sun_system(mut commands: Commands, solar_system_assets: Res<SolarSys
         Transform::from_translation(Vec3::ZERO).with_scale(Vec3::splat(0.02)),
         Sprite::from(solar_system_assets.sun.clone()),
     ));
+}
 
-    // info!("Adding orbiting satellite");
-    // commands.spawn((
-    //     Name::new("satelite"),
-    //     Attractee,
-    //     Thruster::new(ThrusterDirection::RadialIn, 2.0),
-    //     GravityForce::default(),
-    //     Velocity(Vec2::new(0.0, 0.1)),
-    //     Mass(1.0),
-    //     Transform::from_translation(Vec3::new(50.0, 0.0, 0.0)).with_scale(Vec3::splat(0.025)),
-    //     Sprite::from(solar_system_assets.collector.clone()),
-    // ));
+
+
+pub fn setup_tiled_grid(
+    mut commands: Commands,
+    solar_system_assets: Res<SolarSystemAssets>,
+    windows: Query<&Window, With<PrimaryWindow>>,
+) {
+    info!("Adding tiled grid");
+    let Ok(win) = windows.single() else { return; };
+    info!("after check grid");
+
+    // World size per tile (match your grid cell size)
+    let tile_world_size: f32 = 32.0;
+    let margin_tiles: i32 = 2;
+
+    let cols = ((win.width() / tile_world_size).ceil() as i32) + margin_tiles * 2 + 1;
+    let rows = ((win.height() / tile_world_size).ceil() as i32) + margin_tiles * 2 + 1;
+
+    let parent = commands
+        .spawn((
+            Name::new("RetroGrid"),
+            Visibility::default(),
+            TiledGrid { cols, rows, tile_world_size },
+            // Keep behind everything
+            Transform::from_xyz(0.0, 0.0, -1.0),
+            GlobalTransform::default(),
+        ))
+        .id();
+
+    for row in 0..rows*rows {
+        for col in 0..cols*cols{
+            commands.entity(parent).with_children(|p| {
+                p.spawn((
+                    Transform::from_translation(Vec3::new((col * 24 - (win.width() / 2.0f32) as i32) as f32, (row * 24- ((win.height() / 2.0f32)) as i32)as f32 , 0.0)).with_scale(Vec3::splat(0.025)),
+                    Sprite::from(solar_system_assets.grid.clone())
+                ));
+            });
+        }
+    }
 }

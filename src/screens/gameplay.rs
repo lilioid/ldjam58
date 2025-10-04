@@ -2,6 +2,7 @@
 
 use bevy::input::mouse::MouseWheel;
 use crate::sun_system::init_sun_system;
+use crate::sun_system::setup_tiled_grid;
 use bevy::prelude::*;
 use crate::screens::Screen;
 
@@ -13,6 +14,7 @@ struct CameraZoom {
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(OnEnter(Screen::Gameplay), setup_scene);
     app.add_systems(OnEnter(Screen::Gameplay), init_sun_system);
+    app.add_systems(OnEnter(Screen::Gameplay), setup_tiled_grid);
     app.add_systems(Update, camera_zoom.run_if(in_state(Screen::Gameplay)));
 }
 
