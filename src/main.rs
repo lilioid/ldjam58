@@ -16,23 +16,6 @@ fn main() -> AppExit {
     App::new().add_plugins(AppPlugin).run()
 }
 
-/// High-level groupings/tags of systems for the app in the `Update` schedule.
-#[derive(SystemSet, Debug, Clone, Copy, Eq, PartialEq, Hash, PartialOrd, Ord)]
-enum AppSystems {
-    /// Record player input.
-    RecordInput,
-    /// Do everything else (consider splitting this into further variants).
-    Update,
-}
-
-/// Whether or not the game is paused.
-#[derive(States, Copy, Clone, Eq, PartialEq, Hash, Debug, Default)]
-struct Pause(pub bool);
-
-/// A system set for systems that shouldn't run while the game is paused.
-#[derive(SystemSet, Copy, Clone, Eq, PartialEq, Hash, Debug)]
-struct PausableSystems;
-
 pub struct AppPlugin;
 
 impl Plugin for AppPlugin {

@@ -5,9 +5,12 @@ use bevy::prelude::*;
 #[derive(Component, Debug)]
 pub struct Attractor;
 
+#[derive(Component, Debug)]
+pub struct Attractee;
+
 pub(super) fn calc_gravity(
-    attractor: Query<(&Mass, &Transform), (With<Attractor>, Without<GravityForce>)>,
-    mut attractee: Query<(&Mass, &Transform, &mut GravityForce), Without<Attractor>>,
+    attractor: Query<(&Mass, &Transform), ((With<Attractor>, Without<Attractee>), Without<GravityForce>)>,
+    mut attractee: Query<(&Mass, &Transform, &mut GravityForce), (Without<Attractor>, With<Attractee>)>,
 ) {
     let attractor = match attractor.single() {
         Ok(ok) => ok,
@@ -16,16 +19,17 @@ pub(super) fn calc_gravity(
     };
 
     attractee.iter_mut().for_each(|(i_mass, i_transform, mut i_gravity_force)| {
-        let pos1 = attractor.1.translation;
-        let pos2 = i_transform.translation;
+        let pos1 = attractor.1.translation.xy();
+        let pos2 = i_transform.translation.xy();
 
         let distance = pos1.distance(pos2);
-        let direction = (pos2 - pos1).normalize_or_zero();
+        let direction_angle = Vec2::X.angle_to(pos2 - pos1);
+        let direction = -(pos2 - pos1).normalize_or_zero();
 
         let f = calc_gravity_force(attractor.0.0, i_mass.0, distance);
         let directional_force = direction * f;
 
-        debug!("Applying gravity force between attractor {:?} and attractee {:?} -> {f}", pos1, pos2);
+        //debug!("Applying gravity force between attractor {:?} and attractee {:?} -> {directional_force:?}", pos1, pos2);
         i_gravity_force.0 = directional_force.xy();
     });
 }
