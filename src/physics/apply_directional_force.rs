@@ -4,14 +4,10 @@ use crate::physics::velocity::Velocity;
 #[derive(Component, Debug, PartialEq, PartialOrd)]
 pub struct Mass(pub f32);
 
-trait Force {
-    fn get_force(&self) -> &Vec2;
-}
-
-#[derive(Component, Debug, PartialEq)]
+#[derive(Component, Debug, PartialEq, Default)]
 pub struct GravityForce(pub Vec2);
 
-#[derive(Component, Debug, PartialEq)]
+#[derive(Component, Debug, PartialEq, Default)]
 pub struct ThrustForce(pub Vec2);
 
 pub(super) fn apply_directional_force(mut query: Query<(Option<&mut GravityForce>, Option<&mut ThrustForce>, &mut Velocity, &Mass)>, time: Res<Time<Fixed>>) {

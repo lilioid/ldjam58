@@ -2,7 +2,7 @@ pub(crate) mod apply_directional_force;
 pub(crate) mod calc_gravity;
 pub(crate) mod velocity;
 
-use crate::physics::apply_directional_force::{GravityForce, Mass};
+use crate::physics::apply_directional_force::{GravityForce, Mass, ThrustForce};
 use crate::physics::calc_gravity::{Attractee, Attractor};
 use crate::physics::velocity::Velocity;
 use crate::sun_system::init_sun_system;
@@ -42,10 +42,19 @@ fn debug_init_system(mut commands: Commands) {
     debug!("Adding orbiting satellite");
     commands.spawn((
         Attractee,
-        GravityForce(Vec2::new(1.0, 0.0)),
-        Velocity(Vec2::new(0.0, 0.0)),
+        GravityForce::default(),
+        ThrustForce::default(),
+        Velocity(Vec2::new(0.0, 0.3)),
         Mass(1.0),
         Transform::from_translation(Vec3::new(50.0, 0.0, 0.0)),
+    ));
+    commands.spawn((
+        Attractee,
+        GravityForce::default(),
+        ThrustForce::default(),
+        Velocity(Vec2::new(0.0, -0.1)),
+        Mass(1.0),
+        Transform::from_translation(Vec3::new(120.0, 30.0, 0.0)),
     ));
 }
 
