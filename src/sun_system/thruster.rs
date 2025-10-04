@@ -7,6 +7,7 @@ use std::ops::Neg;
 pub const THRUSTER_KEY: KeyCode = KeyCode::Space;
 
 #[derive(Debug, Eq, PartialEq, Hash, Copy, Clone)]
+#[allow(unused)]
 pub enum ThrusterDirection {
     /** Towards the velocity vector **/
     Prograde,

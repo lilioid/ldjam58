@@ -30,11 +30,11 @@ pub fn calc_velocity_change(forces: Vec2, mass: &Mass, time_delta: f32) -> Vec2 
     acceleration * time_delta as f32
 }
 
-pub(super) fn clear_forces(mut gravity: Query<(&mut GravityForce)>, mut thrust: Query<(&mut ThrustForce)>) {
-    gravity.iter_mut().for_each(|(mut i_gravity)| {
+pub(super) fn clear_forces(mut gravity: Query<&mut GravityForce>, mut thrust: Query<&mut ThrustForce>) {
+    gravity.iter_mut().for_each(|mut i_gravity| {
         i_gravity.0 = Vec2::ZERO;
     });
-    thrust.iter_mut().for_each(|(mut i_thrust)| {
+    thrust.iter_mut().for_each(|mut i_thrust| {
         i_thrust.0 = Vec2::ZERO;
     })
 }

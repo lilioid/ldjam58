@@ -9,8 +9,6 @@ use crate::sun_system::navigation_instruments::NavigationInstruments;
 use crate::sun_system::SolarSystemAssets;
 use crate::sun_system::thruster::{Thruster, ThrusterDirection};
 
-struct LaunchingPlugin;
-
 #[derive(Component)]
 struct LaunchPad;
 

@@ -1,5 +1,4 @@
 use bevy::ecs::query::QuerySingleError;
-use bevy::log::tracing;
 use crate::physics::directional_forces::{GravityForce, Mass};
 use bevy::prelude::*;
 
@@ -35,6 +34,8 @@ pub fn calc_gravity_force(attractor_mass: &Mass, attractor_transform: &Transform
 }
 
 fn calc_gravity_force_magnitude(m1: f32, m2: f32, r: f32) -> f32 {
+    #[allow(non_snake_case)]
     let G: f32 = 6.674 * (10.0f32.powi(-11));
+    
     G * ((m1 * m2) / r.powi(2))
 }

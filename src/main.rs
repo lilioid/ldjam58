@@ -12,7 +12,7 @@ mod sun_system;
 mod launching;
 mod collision;
 
-use bevy::log::{Level, LogPlugin};
+use bevy::log::LogPlugin;
 use bevy::{asset::AssetMetaCheck, prelude::*};
 use bevy::window::WindowResolution;
 

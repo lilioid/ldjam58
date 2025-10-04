@@ -2,7 +2,6 @@ pub mod navigation_instruments;
 pub mod thruster;
 
 use crate::AppSystems;
-use crate::Projection;
 use crate::asset_tracking::LoadResource;
 use crate::physics::calc_gravity::{Attractee, Attractor};
 use crate::physics::directional_forces::{GravityForce, Mass};
@@ -10,7 +9,6 @@ use crate::physics::velocity::Velocity;
 use crate::screens::Screen;
 use crate::sun_system::navigation_instruments::NavigationInstruments;
 use crate::sun_system::thruster::{Thruster, ThrusterDirection};
-use bevy::color::palettes::basic::{GRAY, YELLOW};
 use bevy::input::common_conditions::{input_just_pressed, input_just_released};
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
@@ -28,7 +26,6 @@ struct GridIndex {
     col: i32,
     row: i32,
 }
-pub(crate) struct SunSystemPlugin;
 
 pub(super) fn plugin(app: &mut App) {
     app.load_resource::<SolarSystemAssets>();
@@ -40,18 +37,18 @@ pub(super) fn plugin(app: &mut App) {
     );
     app.add_systems(
         Update,
-        (thruster::toggle_thruster
+        thruster::toggle_thruster
             .run_if(
                 input_just_pressed(thruster::THRUSTER_KEY)
                     .or(input_just_released(thruster::THRUSTER_KEY)),
             )
-            .in_set(AppSystems::RecordInput)),
+            .in_set(AppSystems::RecordInput),
     );
     app.add_systems(
         Update,
-        (navigation_instruments::draw_nav_projections
+        navigation_instruments::draw_nav_projections
             .run_if(in_state(Screen::Gameplay))
-            .in_set(AppSystems::Update)),
+            .in_set(AppSystems::Update),
     );
 }
 
