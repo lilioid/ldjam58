@@ -4,7 +4,7 @@ use crate::physics::directional_forces::{calc_velocity_change, Mass};
 use crate::physics::velocity::{calc_position_change, Velocity};
 use bevy::prelude::*;
 
-const PROJECTION_DELTA: f32 = 0.5;
+const PROJECTION_DELTA: f32 = 0.25;
 const PROJECTION_COUNT: usize = 100;
 
 #[derive(Component, Debug, Default, Copy, Clone)]

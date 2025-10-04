@@ -1,4 +1,5 @@
 use bevy::ecs::query::QuerySingleError;
+use bevy::log::tracing;
 use crate::physics::directional_forces::{GravityForce, Mass};
 use bevy::prelude::*;
 
@@ -24,18 +25,16 @@ pub(super) fn apply_gravity(
 }
 
 pub fn calc_gravity_force(attractor_mass: &Mass, attractor_transform: &Transform, attractee_mass: &Mass, attractee_transform: &Transform) -> Vec2 {
-    let pos1 = attractor_transform.translation.xy();
-    let pos2 = attractee_transform.translation.xy();
+    let pos_attractor = attractor_transform.translation.xy();
+    let pos_attractee = attractee_transform.translation.xy();
 
-    let distance = pos1.distance(pos2);
-    let direction_angle = pos1 - pos2;
-
+    let distance = pos_attractor.distance(pos_attractee);
     let f = calc_gravity_force_magnitude(attractor_mass.0, attractee_mass.0, distance);
-    (Vec2::X * f).rotate(direction_angle)
+
+    (pos_attractor - pos_attractee).clamp_length(f, f)
 }
 
 fn calc_gravity_force_magnitude(m1: f32, m2: f32, r: f32) -> f32 {
-    let G: f32 = 6.674 * 10.0f32.powi(-11);
-    const MUL: f32 = 10000.0;
-    MUL * G * ((m1 * m2) / r.powi(2))
+    let G: f32 = 6.674 * (10.0f32.powi(-11));
+    G * ((m1 * m2) / r.powi(2))
 }

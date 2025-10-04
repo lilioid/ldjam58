@@ -26,8 +26,8 @@ pub(super) fn apply_directional_force(mut query: Query<(Option<&GravityForce>, O
 }
 
 pub fn calc_velocity_change(forces: Vec2, mass: &Mass, time_delta: f32) -> Vec2 {
-    let acceleration = forces / mass.0;
-    acceleration * time_delta
+    let acceleration = forces / mass.0 as f32;
+    acceleration * time_delta as f32
 }
 
 pub(super) fn clear_forces(mut gravity: Query<(&mut GravityForce)>, mut thrust: Query<(&mut ThrustForce)>) {
@@ -39,20 +39,24 @@ pub(super) fn clear_forces(mut gravity: Query<(&mut GravityForce)>, mut thrust: 
     })
 }
 
-pub(super) fn draw_directional_forces(mut gizmos: Gizmos, gravity: Query<(&GravityForce, &Transform)>, thrust: Query<(&ThrustForce, &Transform)>) {
+pub(super) fn draw_directional_forces(mut gizmos: Gizmos, gravity: Query<(&GravityForce, &Transform)>, thrust: Query<(&ThrustForce, &Transform)>, time: Res<Time<Fixed>>) {
     gravity.iter().for_each(|(i_gravity, i_trans)| {
-        draw_force_arrow(&mut gizmos, i_gravity.0, i_trans.translation.xy());
+        draw_force_arrow(&mut gizmos, i_gravity.0, i_trans.translation.xy(), &time);
     });
     thrust.iter().for_each(|(i_thrust, i_trans)| {
-        draw_force_arrow(&mut gizmos, i_thrust.0, i_trans.translation.xy());
+        draw_force_arrow(&mut gizmos, i_thrust.0, i_trans.translation.xy(), &time);
     })
 }
 
-fn draw_force_arrow(gizmos: &mut Gizmos, force: Vec2, at: Vec2) {
+fn draw_force_arrow(gizmos: &mut Gizmos, force: Vec2, at: Vec2, time: &Time<Fixed>) {
     if force == Vec2::ZERO {
         return;
     }
     
     let color = Color::srgb_u8(255, 0, 150);
-    gizmos.arrow_2d(at, at + (force * 10.0), color);
+    gizmos.arrow_2d(
+        at,
+        at + (force * time.timestep().as_secs_f32() * 250.0),
+        color
+    );
 }

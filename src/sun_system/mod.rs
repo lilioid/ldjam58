@@ -80,7 +80,7 @@ pub fn init_sun_system(mut commands: Commands, solar_system_assets: Res<SolarSys
     info!("Adding sun");
     commands.spawn((
         Attractor,
-        Mass(100000000.0),
+        Mass(100_000_000_000_000.0),
         Name::new("Sun"),
         Transform::from_translation(Vec3::ZERO).with_scale(Vec3::splat(0.02)),
         Sprite::from(solar_system_assets.sun.clone()),
@@ -91,9 +91,9 @@ pub fn init_sun_system(mut commands: Commands, solar_system_assets: Res<SolarSys
         Name::new("satelite"),
         Attractee,
         NavigationInstruments,
-        Thruster::new(ThrusterDirection::RadialIn, 2.0),
+        Thruster::new(ThrusterDirection::RadialIn, 4.0),
         GravityForce::default(),
-        Velocity(Vec2::new(0.0, 8.0)),
+        Velocity(Vec2::new(0.0, 10.0)),
         Mass(1.0),
         Transform::from_translation(Vec3::new(50.0, 0.0, 0.0)).with_scale(Vec3::splat(0.025)),
         Sprite::from(solar_system_assets.collector.clone()),
