@@ -26,7 +26,7 @@ fn setup_hud(mut commands: Commands, solar_system_assets: Res<SolarSystemAssets>
             position_type: PositionType::Absolute,
             top: Val::Px(15.0),
             left: Val::Px(15.0),
-            width: Val::Px(300.0),
+            width: Val::Px(330.0),
             height: Val::Px(125.0),
             border: UiRect::all(Val::Px(BORDER)),
             ..default()
@@ -87,11 +87,22 @@ fn update_hud(
 ) {
     if player_data.is_changed() {
         for (mut text, _) in energy_rate_query.iter_mut() {
-            text.0 = format!("ENERGY RATE\n█████░░░░░░░░ {}GW", player_data.energy_rate)
+            text.0 = format!("ENERGY RATE\n{} {:.5}GW", get_ascii_bar(player_data.energy_rate.clamp(0.0, 1.0)),player_data.energy_rate)
         }
 
         for (mut text, _) in energy_storage_query.iter_mut() {
-            text.0 = format!("TOTAL:\n█████░░░░░░░░ {}TWh", player_data.energy_stored)
+            text.0 = format!("TOTAL:\n{} {:.2}GWh", get_ascii_bar((player_data.energy_stored / 10.0).clamp(0.0, 1.0)),player_data.energy_stored)
         }
     }
+}
+
+fn get_ascii_bar(percentage: f32) -> String {
+    let total_bars = 15;
+    let filled_bars = (percentage * total_bars as f32).round() as usize;
+    let empty_bars = total_bars - filled_bars;
+
+    let filled_part = "█".repeat(filled_bars);
+    let empty_part = "░".repeat(empty_bars);
+
+    format!("{}{}", filled_part, empty_part)
 }
