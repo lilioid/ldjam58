@@ -13,8 +13,8 @@ fn setup_scene(mut commands: Commands) {
 
     commands.spawn((
         Name::new("Sun"),
-        Mesh2d(meshes.add(Circle::default())),
-        MeshMaterial2d(materials.add(Color::from(YELLOW))),
-        Transform::from_translation(Vec3::new(0.0, 0.0, 0.0)).with_scale(Vec3::splat(128.0)),
+        //Mesh2d(meshes.add(Circle::default())),
+        //MeshMaterial2d(materials.add(Color::from(YELLOW))),
+        //Transform::from_translation(Vec3::new(0.0, 0.0, 0.0)).with_scale(Vec3::splat(128.0)),
     ));
 }

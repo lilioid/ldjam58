@@ -2,7 +2,10 @@ pub(crate) mod apply_directional_force;
 pub(crate) mod calc_gravity;
 pub(crate) mod velocity;
 
-use crate::physics::apply_directional_force::{GravityForce, Mass, ThrustForce};
+use crate::dev_tools::is_debug_enabled;
+use crate::physics::apply_directional_force::{
+    GravityForce, Mass, ThrustForce, draw_directional_forces,
+};
 use crate::physics::calc_gravity::{Attractee, Attractor};
 use crate::physics::velocity::Velocity;
 use crate::sun_system::init_sun_system;
@@ -23,11 +26,24 @@ pub(super) fn plugin(app: &mut App) {
             .in_set(AppSystems::Physics),
     );
 
+    app.add_systems(
+        FixedPostUpdate,
+        (
+            draw_directional_forces
+                .run_if(is_debug_enabled)
+                .before(apply_directional_force::clear_forces),
+            apply_directional_force::clear_forces.in_set(AppSystems::Physics),
+        ),
+    );
+
     app.add_systems(Startup, debug_init_system);
     app.add_systems(
         Update,
-        (draw_attractor, draw_attractee).in_set(AppSystems::Update)(draw_attractor, draw_attractee)
-            .in_set(AppSystems::Update),
+        (draw_attractor, draw_attractee).in_set(AppSystems::Update),
+    );
+    app.add_systems(
+        PostUpdate,
+        (velocity::draw_velocities.run_if(is_debug_enabled)),
     );
 }
 
