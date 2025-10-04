@@ -1,9 +1,10 @@
 use bevy::prelude::*;
+use crate::GameplaySystem;
 use crate::screens::Screen;
 use crate::sun_system::{Satellite, Sun};
 
 pub(crate) fn plugin(app: &mut App) {
-    app.add_systems(Update, update_score.run_if(in_state(Screen::Gameplay)));
+    app.add_systems(Update, update_score.in_set(GameplaySystem));
     app.insert_resource(Score::default());
 }
 
