@@ -10,6 +10,7 @@ mod physics;
 mod screens;
 mod sun_system;
 mod launching;
+mod collision;
 
 use bevy::log::{Level, LogPlugin};
 use bevy::{asset::AssetMetaCheck, prelude::*};
@@ -26,6 +27,7 @@ impl Plugin for AppPlugin {
         // Configure bevys default plugins
         app.add_plugins(
             DefaultPlugins
+
                 .set(AssetPlugin {
                     // Wasm builds will check for meta files (that don't exist) if this isn't set.
                     // This causes errors and even panics on web build on itch.
@@ -48,6 +50,7 @@ impl Plugin for AppPlugin {
                     ..default()
                 }),
         );
+        app.insert_resource(ClearColor(Color::srgb(0.0, 0.0, 0.0)));
 
         // add our own plugins
         app.add_plugins((
@@ -58,6 +61,7 @@ impl Plugin for AppPlugin {
             screens::plugin,
             sun_system::plugin,
             launching::plugin,
+            collision::plugin,
         ));
 
         // Order new `AppSystems` variants by adding them here:

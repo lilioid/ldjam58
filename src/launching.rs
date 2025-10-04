@@ -1,11 +1,13 @@
-use crate::physics::calc_gravity::Attractee;
-use crate::physics::directional_forces::{GravityForce, Mass};
-use crate::physics::velocity::Velocity;
-use crate::sun_system::SolarSystemAssets;
-use crate::sun_system::thruster::{Thruster, ThrusterDirection};
 use bevy::input::common_conditions::{input_just_pressed, input_just_released};
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
+use crate::collision::HitBox;
+use crate::physics::calc_gravity::Attractee;
+use crate::physics::directional_forces::{GravityForce, Mass};
+use crate::physics::velocity::Velocity;
+use crate::sun_system::navigation_instruments::NavigationInstruments;
+use crate::sun_system::SolarSystemAssets;
+use crate::sun_system::thruster::{Thruster, ThrusterDirection};
 
 struct LaunchingPlugin;
 
@@ -94,12 +96,14 @@ fn start_new_launch(
     info!("Launching new satellite towards {:?}", launch_direction);
 
     //force is dependent on how long the mouse was held down
-    let force_multiplier = if let Some(launch_start_time) = launch_state.launched_at_time {
+    let mut force_multiplier = if let Some(launch_start_time) = launch_state.launched_at_time {
         let held_duration = time.elapsed_secs_f64() - launch_start_time;
         held_duration.min(1.0) //cap at 1 secs
     } else {
         0.1
     };
+
+    force_multiplier = force_multiplier * 5.0;
 
     commands.spawn((
         Attractee,
@@ -107,9 +111,14 @@ fn start_new_launch(
         Velocity(launch_direction.xy() * Vec2::splat(force_multiplier as f32)),
         Mass(1.0),
         Transform::from_translation(launch_position + launch_direction)
-            .with_scale(Vec3::splat(0.025)),
+            .with_scale(Vec3::splat(0.015)),
         Sprite::from(solar_system_assets.collector.clone()),
         Thruster::new(ThrusterDirection::Retrograde, 2.0),
+        HitBox {
+            radius: 5.0
+        },
+        NavigationInstruments
+
     ));
 
     launch_state.launched_at_time = None;

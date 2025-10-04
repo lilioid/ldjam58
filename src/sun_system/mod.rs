@@ -14,6 +14,7 @@ use bevy::color::palettes::basic::{GRAY, YELLOW};
 use bevy::input::common_conditions::{input_just_pressed, input_just_released};
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
+use crate::collision::HitBox;
 
 #[derive(Component)]
 struct TiledGrid {
@@ -71,7 +72,7 @@ impl FromWorld for SolarSystemAssets {
         Self {
             sun: assets.load("sun.png"),
             grid: assets.load("retro_grid.png"),
-            collector: assets.load("collector.png"),
+            collector: assets.load("satellite.png"),
         }
     }
 }
@@ -80,6 +81,9 @@ pub fn init_sun_system(mut commands: Commands, solar_system_assets: Res<SolarSys
     info!("Adding sun");
     commands.spawn((
         Attractor,
+        HitBox {
+            radius: 35.0
+        },
         Mass(100_000_000_000_000.0),
         Name::new("Sun"),
         Transform::from_translation(Vec3::ZERO).with_scale(Vec3::splat(0.02)),
@@ -95,7 +99,7 @@ pub fn init_sun_system(mut commands: Commands, solar_system_assets: Res<SolarSys
         GravityForce::default(),
         Velocity(Vec2::new(0.0, 10.0)),
         Mass(1.0),
-        Transform::from_translation(Vec3::new(50.0, 0.0, 0.0)).with_scale(Vec3::splat(0.025)),
+        Transform::from_translation(Vec3::new(50.0, 0.0, 0.0)).with_scale(Vec3::splat(0.015)),
         Sprite::from(solar_system_assets.collector.clone()),
     ));
 }
@@ -112,7 +116,7 @@ pub fn setup_tiled_grid(
     info!("after check grid");
 
     // World size per tile (match your grid cell size)
-    let tile_world_size: f32 = 32.0;
+    let tile_world_size: f32 = 24.0;
     let margin_tiles: i32 = 2;
 
     let cols = ((win.width() / tile_world_size).ceil() as i32) + margin_tiles * 2 + 1;
@@ -138,11 +142,11 @@ pub fn setup_tiled_grid(
             commands.entity(parent).with_children(|p| {
                 p.spawn((
                     Transform::from_translation(Vec3::new(
-                        (col * 24 - (win.width() / 2.0f32) as i32) as f32,
-                        (row * 24 - (win.height() / 2.0f32) as i32) as f32,
+                        (col * 18 - (win.width() / 2.0f32) as i32) as f32,
+                        (row * 18 - (win.height() / 2.0f32) as i32) as f32,
                         0.0,
                     ))
-                    .with_scale(Vec3::splat(0.025)),
+                    .with_scale(Vec3::splat(0.015)),
                     Sprite::from(solar_system_assets.grid.clone()),
                 ));
             });
