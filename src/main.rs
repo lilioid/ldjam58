@@ -13,6 +13,7 @@ mod launching;
 
 use bevy::log::{Level, LogPlugin};
 use bevy::{asset::AssetMetaCheck, prelude::*};
+use bevy::window::WindowResolution;
 
 fn main() -> AppExit {
     App::new().add_plugins(AppPlugin).run()
@@ -36,6 +37,7 @@ impl Plugin for AppPlugin {
                     primary_window: Window {
                         title: "Bevy New 2D".to_string(),
                         fit_canvas_to_parent: true,
+                        resolution: WindowResolution::new(1024, 576),
                         ..default()
                     }
                     .into(),

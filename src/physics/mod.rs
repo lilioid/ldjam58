@@ -8,7 +8,6 @@ use crate::physics::directional_forces::{
     GravityForce, Mass, ThrustForce, draw_directional_forces,
 };
 use crate::physics::velocity::Velocity;
-use crate::sun_system::init_sun_system;
 use crate::{AppSystems, PausableSystems};
 use bevy::color::palettes::basic::{GRAY, YELLOW};
 use bevy::prelude::*;
@@ -46,6 +45,7 @@ pub(super) fn plugin(app: &mut App) {
 
 fn debug_init_system(mut commands: Commands) {
     debug!("Adding orbiting satellite");
+    /*
     commands.spawn((
         Attractee,
         GravityForce::default(),
@@ -63,6 +63,7 @@ fn debug_init_system(mut commands: Commands) {
         Mass(1.0),
         Transform::from_translation(Vec3::new(120.0, 30.0, 0.0)),
     ));
+     */
 }
 
 fn draw_attractee(

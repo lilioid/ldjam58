@@ -7,7 +7,7 @@ use bevy::{
 };
 //use crate::screens::Screen;
 
-const TOGGLE_KEY: KeyCode = KeyCode::Space;
+const TOGGLE_KEY: KeyCode = KeyCode::KeyD;
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(Update, log_transitions::<Screen>);

@@ -1,7 +1,6 @@
 use bevy::prelude::*;
-use crate::physics::directional_forces::{GravityForce, ThrustForce};
 
-#[derive(Component, Debug, PartialEq)]
+#[derive(Component, Debug, Copy, Clone, PartialEq, Default)]
 pub struct Velocity(pub Vec2);
 
 pub(super) fn apply_velocity(mut query: Query<(&Velocity, &mut Transform)>) {
