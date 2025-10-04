@@ -3,9 +3,9 @@ pub(crate) mod directional_forces;
 pub(crate) mod velocity;
 
 use crate::dev_tools::is_debug_enabled;
-use crate::physics::calc_gravity::{Attractee, Attractor};
 use crate::physics::directional_forces::draw_directional_forces;
-use crate::{AppSystems, PausableSystems};
+use crate::physics::velocity::draw_velocities;
+use crate::{AppSystems, GameplaySystem, PausableSystems};
 use bevy::prelude::*;
 
 pub(super) fn plugin(app: &mut App) {
@@ -18,6 +18,7 @@ pub(super) fn plugin(app: &mut App) {
         )
             .chain()
             .in_set(PausableSystems)
+            .in_set(GameplaySystem)
             .in_set(AppSystems::Physics),
     );
 
@@ -27,24 +28,9 @@ pub(super) fn plugin(app: &mut App) {
             draw_directional_forces
                 .run_if(is_debug_enabled)
                 .before(directional_forces::clear_forces),
+            draw_velocities.run_if(is_debug_enabled),
             directional_forces::clear_forces.in_set(AppSystems::Physics),
-        ),
+        )
+            .in_set(GameplaySystem),
     );
-
-    app.add_systems(Update, (draw_attractee).in_set(AppSystems::Update));
-    app.add_systems(
-        PostUpdate,
-        velocity::draw_velocities.run_if(is_debug_enabled),
-    );
-}
-
-fn draw_attractee(
-    mut gizmos: Gizmos,
-    query: Query<&Transform, (With<Attractee>, Without<Attractor>, Without<Sprite>)>,
-) {
-    query.iter().for_each(|i_trans| {
-        let isometry = Isometry2d::new(i_trans.translation.xy(), Rot2::default());
-        let color = Color::WHITE;
-        gizmos.circle_2d(isometry, 5.0, color);
-    });
 }

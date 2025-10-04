@@ -14,7 +14,8 @@ mod collision;
 
 use bevy::log::LogPlugin;
 use bevy::{asset::AssetMetaCheck, prelude::*};
-use bevy::window::{WindowMode, WindowResolution};
+use bevy::window::{WindowResolution};
+use crate::screens::Screen;
 
 fn main() -> AppExit {
     App::new().add_plugins(AppPlugin).run()
@@ -65,7 +66,7 @@ impl Plugin for AppPlugin {
             collision::plugin,
         ));
 
-        // Order new `AppSystems` variants by adding them here:
+        // Tell bevy that our AppSystems should always be executed in the below order
         app.configure_sets(
             Update,
             (
@@ -75,6 +76,12 @@ impl Plugin for AppPlugin {
             )
                 .chain(),
         );
+        
+        // Tell all of our used bevy schedules that they should only run Gameplay systems if we're in the gameplay screen
+        app.configure_sets(PreUpdate, GameplaySystem.run_if(in_state(Screen::Gameplay)));
+        app.configure_sets(Update, GameplaySystem.run_if(in_state(Screen::Gameplay)));
+        app.configure_sets(PostUpdate, GameplaySystem.run_if(in_state(Screen::Gameplay)));
+        app.configure_sets(FixedUpdate, GameplaySystem.run_if(in_state(Screen::Gameplay)));
 
         // Set up the `Pause` state.
         app.init_state::<Pause>();
@@ -98,8 +105,12 @@ enum AppSystems {
 struct Pause(pub bool);
 
 /// A system set for systems that shouldn't run while the game is paused.
-#[derive(SystemSet, Copy, Clone, Eq, PartialEq, Hash, Debug)]
+#[derive(SystemSet, Copy, Clone, Eq, PartialEq, Hash, Debug, Default)]
 struct PausableSystems;
+
+/// A system set which marks systems that should only run during gameplay i.e. not during the loading screen
+#[derive(SystemSet, Copy, Clone, Eq, PartialEq, Hash, Debug, Default)]
+struct GameplaySystem;
 
 fn spawn_camera(mut commands: Commands) {
     commands.spawn(Camera2d);

@@ -1,7 +1,6 @@
 use bevy::color::palettes::basic::BLUE;
 use bevy::prelude::*;
 use crate::dev_tools::is_debug_enabled;
-use crate::physics::calc_gravity::{Attractee, Attractor};
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(Update, (check_for_collisions));
