@@ -16,7 +16,7 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         FixedUpdate,
         (
-            calc_gravity::calc_gravity,
+            calc_gravity::apply_gravity,
             directional_forces::apply_directional_force,
             velocity::apply_velocity,
         )

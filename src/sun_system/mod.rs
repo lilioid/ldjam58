@@ -1,17 +1,19 @@
+pub mod navigation_instruments;
 pub mod thruster;
 
 use crate::AppSystems;
+use crate::Projection;
 use crate::asset_tracking::LoadResource;
 use crate::physics::calc_gravity::{Attractee, Attractor};
 use crate::physics::directional_forces::{GravityForce, Mass};
 use crate::physics::velocity::Velocity;
+use crate::screens::Screen;
+use crate::sun_system::navigation_instruments::NavigationInstruments;
 use crate::sun_system::thruster::{Thruster, ThrusterDirection};
 use bevy::color::palettes::basic::{GRAY, YELLOW};
 use bevy::input::common_conditions::{input_just_pressed, input_just_released};
 use bevy::prelude::*;
-use crate::screens::Screen;
 use bevy::window::PrimaryWindow;
-use crate::Projection;
 
 #[derive(Component)]
 struct TiledGrid {
@@ -26,11 +28,14 @@ struct GridIndex {
     row: i32,
 }
 pub(crate) struct SunSystemPlugin;
+
 pub(super) fn plugin(app: &mut App) {
     app.load_resource::<SolarSystemAssets>();
     app.add_systems(
         FixedUpdate,
-        (thruster::apply_thrust_force).in_set(AppSystems::Physics).run_if(in_state(Screen::Gameplay)),
+        (thruster::apply_thrust_force)
+            .in_set(AppSystems::Physics)
+            .run_if(in_state(Screen::Gameplay)),
     );
     app.add_systems(
         Update,
@@ -40,6 +45,12 @@ pub(super) fn plugin(app: &mut App) {
                     .or(input_just_released(thruster::THRUSTER_KEY)),
             )
             .in_set(AppSystems::RecordInput)),
+    );
+    app.add_systems(
+        Update,
+        (navigation_instruments::draw_nav_projections
+            .run_if(in_state(Screen::Gameplay))
+            .in_set(AppSystems::Update)),
     );
 }
 
@@ -69,14 +80,25 @@ pub fn init_sun_system(mut commands: Commands, solar_system_assets: Res<SolarSys
     info!("Adding sun");
     commands.spawn((
         Attractor,
-        Mass(10000000000.0),
+        Mass(100000000.0),
         Name::new("Sun"),
         Transform::from_translation(Vec3::ZERO).with_scale(Vec3::splat(0.02)),
         Sprite::from(solar_system_assets.sun.clone()),
     ));
+
+    info!("Adding orbiting satellite");
+    commands.spawn((
+        Name::new("satelite"),
+        Attractee,
+        NavigationInstruments,
+        Thruster::new(ThrusterDirection::RadialIn, 2.0),
+        GravityForce::default(),
+        Velocity(Vec2::new(0.0, 8.0)),
+        Mass(1.0),
+        Transform::from_translation(Vec3::new(50.0, 0.0, 0.0)).with_scale(Vec3::splat(0.025)),
+        Sprite::from(solar_system_assets.collector.clone()),
+    ));
 }
-
-
 
 pub fn setup_tiled_grid(
     mut commands: Commands,
@@ -84,7 +106,9 @@ pub fn setup_tiled_grid(
     windows: Query<&Window, With<PrimaryWindow>>,
 ) {
     info!("Adding tiled grid");
-    let Ok(win) = windows.single() else { return; };
+    let Ok(win) = windows.single() else {
+        return;
+    };
     info!("after check grid");
 
     // World size per tile (match your grid cell size)
@@ -98,19 +122,28 @@ pub fn setup_tiled_grid(
         .spawn((
             Name::new("RetroGrid"),
             Visibility::default(),
-            TiledGrid { cols, rows, tile_world_size },
+            TiledGrid {
+                cols,
+                rows,
+                tile_world_size,
+            },
             // Keep behind everything
             Transform::from_xyz(0.0, 0.0, -1.0),
             GlobalTransform::default(),
         ))
         .id();
 
-    for row in 0..rows*rows {
-        for col in 0..cols*cols{
+    for row in 0..rows * rows {
+        for col in 0..cols * cols {
             commands.entity(parent).with_children(|p| {
                 p.spawn((
-                    Transform::from_translation(Vec3::new((col * 24 - (win.width() / 2.0f32) as i32) as f32, (row * 24- ((win.height() / 2.0f32)) as i32)as f32 , 0.0)).with_scale(Vec3::splat(0.025)),
-                    Sprite::from(solar_system_assets.grid.clone())
+                    Transform::from_translation(Vec3::new(
+                        (col * 24 - (win.width() / 2.0f32) as i32) as f32,
+                        (row * 24 - (win.height() / 2.0f32) as i32) as f32,
+                        0.0,
+                    ))
+                    .with_scale(Vec3::splat(0.025)),
+                    Sprite::from(solar_system_assets.grid.clone()),
                 ));
             });
         }

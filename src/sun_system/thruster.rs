@@ -69,13 +69,13 @@ pub fn apply_thrust_force(
                     ThrusterDirection::RadialIn => {
                         let center = attractor.translation.xy();
                         let i_pos = i_trans.translation.xy();
-                        let offset = i_pos - center;
-                        let rotation = if offset.angle_to(i_velocity.0) < 0.0 {
+                        let relative_position = i_pos - center;
+                        let rotation = if relative_position.angle_to(i_velocity.0) < 0.0 {
                             -1.0
                         } else {
                             1.0
                         };
-                        (offset.perp() * rotation).neg()
+                        (relative_position.perp() * rotation).neg()
                     },
                     ThrusterDirection::RadialOut => {
                         let center = attractor.translation.xy();
