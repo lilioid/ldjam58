@@ -1,10 +1,20 @@
-Font: Lucida Console
+Font:
+    Lucida Console
 
-ENERGY RATE
-█████░░░░░░░░  097.6 GW
+Colours:
+    Red-ish orange (text, HUD elements, asteroids): #ff6000
+    Yellow-ish orange (sun, orbit): #e3a54e
+    Blue-ish teal (retro grid, planet, optional planet trace): #089597
+    Black (background): #000000
+    White (satellites, trajectory): #ffffff
 
-TOTAL STORED
-██████████░░░  002.3 TWh
 
-Charge bar (90 degrees rotated):
-[--------------------|████|--------------------]
+HUD text elements:
+    ENERGY RATE
+    █████░░░░░░░░  097.6 GW
+
+    TOTAL STORED
+    ██████████░░░  002.3 TWh
+
+    Charge bar (90 degrees rotated):
+    [--------------------|████|--------------------]
