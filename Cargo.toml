@@ -21,12 +21,23 @@ dev_native = [
     "bevy/embedded_watcher",
 ]
 
+[package.metadata.bevy_cli.native.dev]
+features = [ "native_dev" ]
+
+[package.metadata.bevy_cli.web]
+features = [ "dev" ]
+default-features = false
+
+
 [dependencies]
 bevy = { version = "0.17.1", features = ["dynamic_linking"] }
 tracing = { version = "0.1", features = [
     "max_level_debug",
     "release_max_level_warn",
-] }
+]}
+
+[target.wasm32-unknown-unknown.dependencies]
+getrandom = { version = "0.3", features = ["wasm_js"] }
 
 [lints.rust]
 # Mark `bevy_lint` as a valid `cfg`, as it is set when the Bevy linter runs.
@@ -45,14 +56,17 @@ opt-level = 3
 debug-assertions = false
 
 
+[profile.web]
+inherits = "dev"
+
+
 # Enable more optimization in the release profile at the cost of compile time.
 [profile.release]
 codegen-units = 1
 lto = "thin"
 
 # Optimize for size in the wasm-release profile to reduce load times and bandwidth usage on web.
-[profile.wasm-release]
+[profile.web-release]
 inherits = "release"
 opt-level = "s"
 strip = "debuginfo"
-
