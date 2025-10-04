@@ -33,14 +33,14 @@ fn camera_zoom(
     mut query: Query<(&mut Transform, &mut CameraZoom), With<Camera>>,
 ) {
     //stepped zoom with predefined levels
-    let zoom_levels = [0.1, 0.15, 0.25, 0.5, 0.75, 1.0, 1.5, 2.0];
+    let zoom_levels = [0.1, 0.15, 0.25, 0.5, 0.75];
 
     if let Ok((mut transform, mut camera_zoom)) = query.single_mut() {
         for ev in scroll_evr.read() {
-            if ev.y > 0.0 && camera_zoom.level < zoom_levels.len() - 1 {
-                camera_zoom.level += 1;
-            } else if ev.y < 0.0 && camera_zoom.level > 0 {
+            if ev.y > 0.0 && camera_zoom.level > 0 {
                 camera_zoom.level -= 1;
+            } else if ev.y < 0.0 && camera_zoom.level < zoom_levels.len() - 1 {
+                camera_zoom.level += 1;
             }
         }
 
