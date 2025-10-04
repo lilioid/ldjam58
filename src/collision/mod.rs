@@ -8,7 +8,7 @@ use crate::physics::calc_gravity::{Attractee, Attractor};
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(Update, (check_for_collisions));
     app.add_systems(Update, (draw_hitboxes).run_if(is_debug_enabled) );
-    app.add_systems(Update, cleanup );
+    app.add_observer(handle_fatal_collision_event);
 }
 
 #[derive(Component, Copy, Clone, Debug, PartialEq, Default)]
@@ -16,7 +16,11 @@ pub struct HitBox {
     pub radius: f32,
 }
 
-#[derive(Component)] struct ToDespawn;
+#[derive(Event)]
+struct FatalCollisionEvent {
+    destroyed: Entity,
+    other: Entity,
+}
 
 pub fn is_colliding(obj1_transform: &Transform, obj1_hitbox: &HitBox,obj2_transform: &Transform, obj2_hitbox: &HitBox) -> bool {
     let distance = obj1_transform.translation.distance(obj2_transform.translation);
@@ -37,12 +41,11 @@ fn check_for_collisions(mut commands: Commands, hitboxes: Query<(Entity, &Transf
             if distance < (hitbox1.radius+hitbox2.radius) {
                 if(isAttractor){//attractor involved delete attracted
                     //delete attracted ( mark for cleanup system)
-                    commands.entity(entity_check).insert(ToDespawn);
+                    commands.trigger(FatalCollisionEvent { destroyed: entity_check, other: entity });
                 }else if(isAttractor2){
-                    commands.entity(entity).insert(ToDespawn);
                 }else {
-                    commands.entity(entity).insert(ToDespawn);
-                    commands.entity(entity_check).insert(ToDespawn);
+                    info!("lala!");
+                    commands.trigger(FatalCollisionEvent { destroyed: entity, other: entity_check });
                 }
                 //info!("Collision found");
                 // if entity is not attractor delete
@@ -52,14 +55,12 @@ fn check_for_collisions(mut commands: Commands, hitboxes: Query<(Entity, &Transf
     }
 }
 
-
-fn cleanup(mut commands: Commands, q: Query<Entity, With<ToDespawn>>) {
-    for e in &q {
-        if let Ok(mut ec) = commands.get_entity(e) {
-            ec.despawn();
-        }
-    }
+fn handle_fatal_collision_event(event: On<FatalCollisionEvent>, mut commands: Commands) {
+    commands.get_entity(event.destroyed).expect("Wanted to despawn entity after fatal collision but entity does not exist!")
+        .despawn();
 }
+
+
 /**
 collectors have hp, output, level
 lower hp decreases output
