@@ -48,13 +48,6 @@ pub(super) fn plugin(app: &mut App) {
 }
 
 fn debug_init_system(mut commands: Commands) {
-    debug!("Adding sun");
-    commands.spawn((
-        Attractor,
-        Mass(100000000000.0),
-        Transform::from_translation(Vec3::splat(0.0)),
-    ));
-
     debug!("Adding orbiting satellite");
     commands.spawn((
         Attractee,
