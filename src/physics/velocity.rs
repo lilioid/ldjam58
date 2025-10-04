@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use crate::physics::apply_directional_force::{GravityForce, ThrustForce};
+use crate::physics::directional_forces::{GravityForce, ThrustForce};
 
 #[derive(Component, Debug, PartialEq)]
 pub struct Velocity(pub Vec2);
@@ -17,6 +17,6 @@ pub(super) fn draw_velocities(mut gizmos: Gizmos, query: Query<(&Velocity, &Tran
         }
 
         let color = Color::srgb_u8(0, 100, 255);
-        gizmos.arrow_2d(i_trans.translation.xy(), i_trans.translation.xy() + (i_velocity.0 * 250.0), color);
+        gizmos.arrow_2d(i_trans.translation.xy(), i_trans.translation.xy() + (i_velocity.0 * 200.0), color);
     });
 }
