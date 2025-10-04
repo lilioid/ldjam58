@@ -1,4 +1,4 @@
-mod thruster;
+pub mod thruster;
 
 use crate::AppSystems;
 use crate::asset_tracking::LoadResource;
@@ -57,15 +57,15 @@ pub fn init_sun_system(mut commands: Commands, solar_system_assets: Res<SolarSys
         Sprite::from(solar_system_assets.sun.clone()),
     ));
 
-    info!("Adding orbiting satellite");
-    commands.spawn((
-        Name::new("satelite"),
-        Attractee,
-        Thruster::new(ThrusterDirection::RadialIn, 2.0),
-        GravityForce::default(),
-        Velocity(Vec2::new(0.0, 0.1)),
-        Mass(1.0),
-        Transform::from_translation(Vec3::new(50.0, 0.0, 0.0)).with_scale(Vec3::splat(0.025)),
-        Sprite::from(solar_system_assets.collector.clone()),
-    ));
+    // info!("Adding orbiting satellite");
+    // commands.spawn((
+    //     Name::new("satelite"),
+    //     Attractee,
+    //     Thruster::new(ThrusterDirection::RadialIn, 2.0),
+    //     GravityForce::default(),
+    //     Velocity(Vec2::new(0.0, 0.1)),
+    //     Mass(1.0),
+    //     Transform::from_translation(Vec3::new(50.0, 0.0, 0.0)).with_scale(Vec3::splat(0.025)),
+    //     Sprite::from(solar_system_assets.collector.clone()),
+    // ));
 }
