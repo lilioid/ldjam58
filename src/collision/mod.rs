@@ -7,12 +7,10 @@ pub(super) fn plugin(app: &mut App) {
     app.add_systems(Update, (draw_hitboxes).run_if(is_debug_enabled) );
 }
 
-#[derive(Component)]
+#[derive(Component, Copy, Clone, Debug, PartialEq, Default)]
 pub struct HitBox {
     pub radius: f32,
-
 }
-
 
 pub fn is_colliding(obj1_transform: &Transform, obj1_hitbox: &HitBox,obj2_transform: &Transform, obj2_hitbox: &HitBox) -> bool {
     let distance = obj1_transform.translation.distance(obj2_transform.translation);

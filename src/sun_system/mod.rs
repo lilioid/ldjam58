@@ -89,7 +89,7 @@ pub fn init_sun_system(mut commands: Commands, solar_system_assets: Res<SolarSys
     commands.spawn((
         Attractor,
         HitBox {
-            radius: 35.0
+            radius: 20.0
         },
         Mass(100_000_000_000_000.0),
         Name::new("Sun"),
@@ -97,19 +97,6 @@ pub fn init_sun_system(mut commands: Commands, solar_system_assets: Res<SolarSys
         Sprite::from(solar_system_assets.sun.clone()),
         Sun
     ));
-
-    // info!("Adding orbiting satellite");
-    // commands.spawn((
-    //     Name::new("satelite"),
-    //     Attractee,
-    //     NavigationInstruments,
-    //     Thruster::new(ThrusterDirection::RadialOut, 4.0),
-    //     GravityForce::default(),
-    //     Velocity(Vec2::new(0.0, 10.0)),
-    //     Mass(1.0),
-    //     Transform::from_translation(Vec3::new(50.0, 0.0, 0.0)).with_scale(Vec3::splat(0.015)),
-    //     Sprite::from(solar_system_assets.collector.clone()),
-    // ));
 }
 
 pub fn setup_tiled_grid(
@@ -167,6 +154,5 @@ pub fn setup_grid_image(mut commands: Commands, solar_system_assets: Res<SolarSy
         Name::new("GridImage"),
         Sprite::from(solar_system_assets.bg.clone()),
         Transform::from_translation(Vec3::new(0.0, 0.0, -5.0)).with_scale(Vec3::splat(0.15))
-
     ));
 }
