@@ -1,5 +1,5 @@
 use bevy::ecs::query::QuerySingleError;
-use crate::physics::apply_directional_force::{GravityForce, Mass};
+use crate::physics::directional_forces::{GravityForce, Mass};
 use bevy::prelude::*;
 
 #[derive(Component, Debug)]
@@ -34,5 +34,6 @@ pub(super) fn calc_gravity(
 
 fn calc_gravity_force(m1: f32, m2: f32, r: f32) -> f32 {
     let G: f32 = 6.674 * 10.0f32.powi(-11);
-    G * ((m1 * m2) / r.powi(2))
+    const MUL: f32 = 100.0;
+    MUL * G * ((m1 * m2) / r.powi(2))
 }

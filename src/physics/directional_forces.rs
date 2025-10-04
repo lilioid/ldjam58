@@ -10,7 +10,7 @@ pub struct GravityForce(pub Vec2);
 #[derive(Component, Debug, PartialEq, Default)]
 pub struct ThrustForce(pub Vec2);
 
-pub(super) fn apply_directional_force(mut query: Query<(Option<&mut GravityForce>, Option<&mut ThrustForce>, &mut Velocity, &Mass)>, time: Res<Time<Fixed>>) {
+pub(super) fn apply_directional_force(mut query: Query<(Option<&mut GravityForce>, Option<&mut ThrustForce>, &mut Velocity, &Mass)>, time: Res<Time>) {
     query.iter_mut().for_each(|(mut gravity, mut thrust, mut velocity, mass)| {
         let mut accumulated_forces = Vec2::ZERO;
         
@@ -50,5 +50,5 @@ fn draw_force_arrow(gizmos: &mut Gizmos, force: Vec2, at: Vec2) {
     }
     
     let color = Color::srgb_u8(255, 0, 150);
-    gizmos.arrow_2d(at, at + (force * 250.0), color);
+    gizmos.arrow_2d(at, at + (force * 20.0), color);
 }
