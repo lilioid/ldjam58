@@ -3,6 +3,7 @@ Font:
 
 Colours:
     Red-ish orange (text, HUD elements, asteroids): #ff6000
+    Slightly darker red-ish orange (trailing 0 in scores): #983900
     Yellow-ish orange (sun, orbit): #e3a54e
     Blue-ish teal (retro grid, planet, optional planet trace): #089597
     Black (background): #000000
