@@ -45,7 +45,6 @@ pub fn is_colliding(
 fn check_for_collisions(
     mut commands: Commands,
     hitboxes: Query<(Entity, &Transform, &HitBox, Has<Attractor>, Has<Attractee>)>,
-    solarRes: Res<SolarSystemAssets>,
 ) {
     for (entity, entity_transform, hitbox1, isAttractor, isAttractee) in hitboxes.iter() {
         for (entity_check, check_transform, hitbox2, isAttractor2, isAttractee2) in hitboxes.iter()
@@ -59,8 +58,7 @@ fn check_for_collisions(
             if distance < (hitbox1.radius + hitbox2.radius) {
                 info!("Adding crash image");
 
-                if(isAttractor){//attractor involved delete attracted
-                    //delete attracted ( mark for cleanup system)
+                if(isAttractor){
                     commands.trigger(FatalCollisionEvent {
                         destroyed: entity_check,
                         other: entity,
@@ -72,6 +70,9 @@ fn check_for_collisions(
                         other: entity_check,
                     });
                 }
+                //info!("Collision found");
+                // if entity is not attractor delete
+                // attracted and attracted ?
             }
         }
     }

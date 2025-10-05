@@ -2,17 +2,19 @@
 
 mod loading;
 mod gameplay;
+mod gameover;
 //mod splash;
 //mod title;
 
 use bevy::prelude::*;
+use crate::collision::FatalCollisionEvent;
 
 pub(super) fn plugin(app: &mut App) {
     app.init_state::<Screen>();
-
     app.add_plugins((
         gameplay::plugin,
         loading::plugin,
+        gameover::plugin,
         //splash::plugin,
         //title::plugin,
     ));
@@ -25,4 +27,7 @@ pub enum Screen {
     Loading,
     Title,
     Gameplay,
+    Gameover
 }
+
+

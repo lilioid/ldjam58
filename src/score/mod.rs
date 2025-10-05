@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use crate::collision::FatalCollisionEvent;
 use crate::GameplaySystem;
 use crate::launching::CollectorStats;
 use crate::screens::Screen;
