@@ -1,14 +1,15 @@
-use bevy::input::common_conditions::{input_just_pressed, input_just_released};
-use bevy::prelude::*;
-use bevy::window::PrimaryWindow;
+use crate::GameplaySystem;
 use crate::collision::HitBox;
 use crate::physics::calc_gravity::Attractee;
 use crate::physics::directional_forces::{GravityForce, Mass};
 use crate::physics::velocity::Velocity;
 use crate::score::Score;
 use crate::sun_system::navigation_instruments::NavigationInstruments;
-use crate::sun_system::{Level, Satellite, SolarSystemAssets};
 use crate::sun_system::thruster::{Thruster, ThrusterDirection};
+use crate::sun_system::{Level, Satellite, SolarSystemAssets};
+use bevy::input::common_conditions::{input_just_pressed, input_just_released};
+use bevy::prelude::*;
+use bevy::window::PrimaryWindow;
 
 #[derive(Component)]
 struct LaunchPad;
@@ -28,20 +29,19 @@ pub(super) fn plugin(app: &mut App) {
             start_new_launch.run_if(input_just_released(MouseButton::Left)),
             record_launch_time.run_if(input_just_pressed(MouseButton::Left)),
             deactivate_old_sats.run_if(input_just_released(MouseButton::Left)),
-            
             update_launch_pad_ui,
-        ),
+        )
+            .in_set(GameplaySystem),
     );
-    app.add_systems(Startup, init_launching_system);
     app.insert_resource(LaunchState {
         launched_at_time: None,
     });
 }
 
-fn init_launching_system(mut commands: Commands) {
-    commands.spawn((
+pub fn make_launchpad() -> impl Bundle {
+    (
         Name::new("LaunchPad"),
-        Transform::from_translation(Vec3::new(150.0, 0.0, 0.0)).with_scale(Vec3::splat(0.1)),
+        Transform::from_translation(Vec3::new(90.0, 0.0, 0.0)).with_scale(Vec3::splat(0.1)),
         LaunchPad,
         Node {
             bottom: Val::Px(25.0),
@@ -67,7 +67,7 @@ fn init_launching_system(mut commands: Commands) {
             },
             BackgroundColor(Color::srgb(1.0, 1.0, 1.0)),
         )],
-    ));
+    )
 }
 
 fn start_new_launch(
@@ -81,9 +81,9 @@ fn start_new_launch(
     mut score: ResMut<Score>,
 ) {
     info!("Pay energy");
-    if(score.energy_stored >= 0.2) {
+    if (score.energy_stored >= 0.2) {
         score.energy_stored -= 0.2f32;
-    }else{
+    } else {
         return;
     }
     let launch_pad_transform = launch_pad_query.single().unwrap();
@@ -115,7 +115,7 @@ fn start_new_launch(
 
     commands.spawn((
         Name::new("Collector"),
-        Level{level:1.0},
+        Level { level: 1.0 },
         Attractee,
         GravityForce::default(),
         Velocity(launch_direction.xy() * Vec2::splat(force_multiplier as f32)),
@@ -124,12 +124,9 @@ fn start_new_launch(
             .with_scale(Vec3::splat(0.015)),
         Sprite::from(solar_system_assets.collector.clone()),
         Thruster::new(ThrusterDirection::Retrograde, 2.0),
-        HitBox {
-            radius: 5.0
-        },
+        HitBox { radius: 5.0 },
         NavigationInstruments,
         Satellite,
-
     ));
 
     launch_state.launched_at_time = None;
@@ -141,7 +138,10 @@ fn record_launch_time(time: Res<Time>, mut launch_state: ResMut<LaunchState>) {
     }
 }
 
-fn deactivate_old_sats(mut commands: Commands ,thruster_query: Query<Entity, (With<Thruster>, With<NavigationInstruments>)>) {
+fn deactivate_old_sats(
+    mut commands: Commands,
+    thruster_query: Query<Entity, (With<Thruster>, With<NavigationInstruments>)>,
+) {
     for entity in thruster_query.iter() {
         let mut ec = commands.get_entity(entity).unwrap();
         ec.remove::<Thruster>();
@@ -149,7 +149,7 @@ fn deactivate_old_sats(mut commands: Commands ,thruster_query: Query<Entity, (Wi
     }
 }
 
-fn update_launch_pad_ui (
+fn update_launch_pad_ui(
     launch_pad_query: Query<&Transform, With<LaunchPad>>,
     mut launch_bar_query: Query<&mut Node, With<LaunchBar>>,
     time: Res<Time>,

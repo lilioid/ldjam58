@@ -1,6 +1,7 @@
 use crate::asset_tracking::LoadResource;
 use crate::screens::Screen;
 use bevy::prelude::*;
+use crate::launching::make_launchpad;
 
 pub(super) fn plugin(app: &mut App) {
     app.load_resource::<EarthAssets>();
@@ -32,9 +33,12 @@ fn init_earth(mut commands: Commands, assets: Res<EarthAssets>) {
     info!("Init earth");
 
     commands.spawn((
-        Name::new("Earth"), 
+        Name::new("Earth"),
         Earth,
         Transform::from_translation(Vec3::new(90.0, 0.0, 0.0)).with_scale(Vec3::splat(0.004)),
         Sprite::from(assets.earth.clone()),
+        children![ 
+            make_launchpad(),
+        ]
     ));
 }
