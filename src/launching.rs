@@ -7,7 +7,7 @@ use crate::physics::directional_forces::{GravityForce, Mass};
 use crate::physics::velocity::Velocity;
 use crate::score::Score;
 use crate::sun_system::navigation_instruments::NavigationInstruments;
-use crate::sun_system::{Satellite, SolarSystemAssets};
+use crate::sun_system::{Level, Satellite, SolarSystemAssets};
 use crate::sun_system::thruster::{Thruster, ThrusterDirection};
 
 #[derive(Component)]
@@ -81,8 +81,8 @@ fn start_new_launch(
     mut score: ResMut<Score>,
 ) {
     info!("Pay energy");
-    if(score.energy_stored >= 1.0) {
-        score.energy_stored -= 1f32;
+    if(score.energy_stored >= 0.2) {
+        score.energy_stored -= 0.2f32;
     }else{
         return;
     }
@@ -115,6 +115,7 @@ fn start_new_launch(
 
     commands.spawn((
         Name::new("Collector"),
+        Level{level:1.0},
         Attractee,
         GravityForce::default(),
         Velocity(launch_direction.xy() * Vec2::splat(force_multiplier as f32)),

@@ -4,6 +4,7 @@ use bevy::ecs::system::entity_command::remove;
 use bevy::prelude::*;
 use crate::dev_tools::is_debug_enabled;
 use crate::physics::calc_gravity::{Attractee, Attractor};
+use crate::sun_system::SolarSystemAssets;
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(Update, (check_for_collisions));
@@ -31,7 +32,7 @@ pub fn is_colliding(obj1_transform: &Transform, obj1_hitbox: &HitBox,obj2_transf
     false
 }
 
-fn check_for_collisions(mut commands: Commands, hitboxes: Query<(Entity, &Transform, &HitBox, Has<Attractor>, Has<Attractee>)>) {
+fn check_for_collisions(mut commands: Commands, hitboxes: Query<(Entity, &Transform, &HitBox, Has<Attractor>, Has<Attractee>)>,solarRes: Res<SolarSystemAssets>) {
     for (entity, entity_transform, hitbox1,isAttractor, isAttractee) in hitboxes.iter() {
         for (entity_check, check_transform, hitbox2,isAttractor2, isAttractee2) in hitboxes.iter() {
             if (entity == entity_check){
@@ -39,6 +40,17 @@ fn check_for_collisions(mut commands: Commands, hitboxes: Query<(Entity, &Transf
             }
             let distance = entity_transform.translation.distance(check_transform.translation);
             if distance < (hitbox1.radius+hitbox2.radius) {
+                info!("Adding crash image");
+                commands.spawn((
+                    Name::new("crash"),
+                    Transform::from_translation(entity_transform.translation).with_scale(Vec3::splat(0.02)),
+                    Sprite::from(solarRes.crash.clone())
+                ));
+                commands.spawn((
+                    Name::new("crash"),
+                    Transform::from_translation(check_transform.translation).with_scale(Vec3::splat(0.02)),
+                    Sprite::from(solarRes.crash.clone())
+                ));
                 if(isAttractor){//attractor involved delete attracted
                     //delete attracted ( mark for cleanup system)
                     commands.trigger(FatalCollisionEvent { destroyed: entity_check, other: entity });

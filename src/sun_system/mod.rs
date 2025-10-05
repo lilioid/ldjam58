@@ -65,7 +65,7 @@ pub struct SolarSystemAssets {
     grid: Handle<Image>,
     
     #[dependency]
-    crash: Handle<Image>,
+    pub crash: Handle<Image>,
 
     #[dependency]
     pub(crate) bg: Handle<Image>,
@@ -77,6 +77,12 @@ pub struct SolarSystemAssets {
 
 #[derive(Component)]
 pub struct Satellite;
+
+#[derive(Component, Debug, Copy, Clone)]
+pub struct Level{
+    pub level: f32,
+}
+// depending on level energy rate of one satellite increase
 
 #[derive(Component)]
 pub struct Sun;
@@ -110,13 +116,7 @@ pub fn init_sun_system(mut commands: Commands, solar_system_assets: Res<SolarSys
         Sun
     ));
 
-    info!("Adding crash image");
-    commands.spawn((
-        Name::new("crash"),
-        Transform::from_translation(Vec3::ZERO).with_scale(Vec3::splat(0.02)),
-        Sprite::from(solar_system_assets.crash.clone())
-        
-    ));
+
 }
 
 pub fn setup_grid_image(mut commands: Commands, solar_system_assets: Res<SolarSystemAssets>) {
