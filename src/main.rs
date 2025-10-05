@@ -4,21 +4,23 @@
 #![cfg_attr(not(feature = "dev"), windows_subsystem = "windows")]
 
 mod asset_tracking;
+mod collision;
 #[cfg(feature = "dev")]
 mod dev_tools;
+mod hud;
+mod launching;
 mod physics;
+mod score;
 mod screens;
 mod sun_system;
-mod launching;
-mod collision;
-mod score;
-mod hud;
-mod sound;
 
-use bevy::log::LogPlugin;
-use bevy::{asset::AssetMetaCheck, prelude::*};
-use bevy::window::{WindowResolution};
+use std::ops::{Deref, DerefMut};
 use crate::screens::Screen;
+use bevy::log::LogPlugin;
+use bevy::window::WindowResolution;
+use bevy::{asset::AssetMetaCheck, prelude::*};
+use rand::SeedableRng;
+use rand_chacha::ChaCha8Rng;
 
 fn main() -> AppExit {
     App::new().add_plugins(AppPlugin).run()
@@ -31,7 +33,6 @@ impl Plugin for AppPlugin {
         // Configure bevys default plugins
         app.add_plugins(
             DefaultPlugins
-
                 .set(AssetPlugin {
                     // Wasm builds will check for meta files (that don't exist) if this isn't set.
                     // This causes errors and even panics on web build on itch.
@@ -82,16 +83,26 @@ impl Plugin for AppPlugin {
             )
                 .chain(),
         );
-        
+
         // Tell all of our used bevy schedules that they should only run Gameplay systems if we're in the gameplay screen
         app.configure_sets(PreUpdate, GameplaySystem.run_if(in_state(Screen::Gameplay)));
         app.configure_sets(Update, GameplaySystem.run_if(in_state(Screen::Gameplay)));
-        app.configure_sets(PostUpdate, GameplaySystem.run_if(in_state(Screen::Gameplay)));
-        app.configure_sets(FixedUpdate, GameplaySystem.run_if(in_state(Screen::Gameplay)));
+        app.configure_sets(
+            PostUpdate,
+            GameplaySystem.run_if(in_state(Screen::Gameplay)),
+        );
+        app.configure_sets(
+            FixedUpdate,
+            GameplaySystem.run_if(in_state(Screen::Gameplay)),
+        );
 
         // Set up the `Pause` state.
         app.init_state::<Pause>();
         app.configure_sets(Update, PausableSystems.run_if(in_state(Pause(false))));
+
+        // Set up a randomness source
+        let rng = ChaCha8Rng::try_from_os_rng().unwrap_or(ChaCha8Rng::seed_from_u64(42));
+        app.insert_resource(RandomSource(rng));
     }
 }
 
@@ -120,4 +131,21 @@ struct GameplaySystem;
 
 fn spawn_camera(mut commands: Commands) {
     commands.spawn(Camera2d);
+}
+
+#[derive(Resource)]
+struct RandomSource(ChaCha8Rng);
+
+impl Deref for RandomSource {
+    type Target = ChaCha8Rng;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for RandomSource {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
 }

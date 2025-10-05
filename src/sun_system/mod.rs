@@ -1,6 +1,7 @@
 pub mod navigation_instruments;
 pub mod thruster;
 mod earth;
+mod asteroids;
 
 use crate::{AppSystems, GameplaySystem};
 use crate::asset_tracking::LoadResource;
@@ -29,7 +30,7 @@ struct GridIndex {
 }
 
 pub(super) fn plugin(app: &mut App) {
-    app.add_plugins(earth::plugin);
+    app.add_plugins((earth::plugin, asteroids::plugin));
     app.load_resource::<SolarSystemAssets>();
     app.add_systems(
         FixedUpdate,
