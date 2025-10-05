@@ -1,5 +1,6 @@
 pub mod navigation_instruments;
 pub mod thruster;
+mod earth;
 
 use crate::AppSystems;
 use crate::asset_tracking::LoadResource;
@@ -28,6 +29,7 @@ struct GridIndex {
 }
 
 pub(super) fn plugin(app: &mut App) {
+    app.add_plugins(earth::plugin);
     app.load_resource::<SolarSystemAssets>();
     app.add_systems(
         FixedUpdate,
@@ -115,8 +117,6 @@ pub fn init_sun_system(mut commands: Commands, solar_system_assets: Res<SolarSys
         Sprite::from(solar_system_assets.sun.clone()),
         Sun
     ));
-
-
 }
 
 pub fn setup_grid_image(mut commands: Commands, solar_system_assets: Res<SolarSystemAssets>) {
