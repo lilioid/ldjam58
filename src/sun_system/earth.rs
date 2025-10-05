@@ -76,15 +76,10 @@ fn draw_arrow(
     camera_query: Query<(&Camera, &GlobalTransform)>,
     windows: Query<&Window>,
 ) {
-    let Ok(earth_transform) = earth_query.single() else {
-        return;
-    };
-    let Ok((camera, camera_transform)) = camera_query.single() else {
-        return;
-    };
-    let Some(window) = windows.iter().next() else {
-        return;
-    };
+    let earth_transform = earth_query.single().unwrap();
+    let (camera, camera_transform) = camera_query.single().unwrap();
+    let window = windows.iter().next().unwrap();
+
     let Some(cursor_position) = window.cursor_position() else {
         return;
     };
