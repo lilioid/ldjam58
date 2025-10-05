@@ -5,7 +5,7 @@ use crate::sun_system::{Satellite, Sun};
 
 pub(crate) fn plugin(app: &mut App) {
     app.add_systems(Update, update_score.in_set(GameplaySystem));
-    app.insert_resource(Score::default());
+    app.insert_resource(Score{energy_rate:1.0,energy_stored:1.0});
 }
 
 #[derive(Resource, Default)]

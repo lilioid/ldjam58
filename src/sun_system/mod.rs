@@ -63,6 +63,9 @@ pub struct SolarSystemAssets {
 
     #[dependency]
     grid: Handle<Image>,
+    
+    #[dependency]
+    crash: Handle<Image>,
 
     #[dependency]
     pub(crate) bg: Handle<Image>,
@@ -84,6 +87,7 @@ impl FromWorld for SolarSystemAssets {
         let assets = world.resource::<AssetServer>();
         Self {
             sun: assets.load("sun.png"),
+            crash: assets.load("crash.png"),
             grid: assets.load("retro_grid.png"),
             collector: assets.load("satellite.png"),
             bg: assets.load("retro_grid_bg.png"),
@@ -104,6 +108,14 @@ pub fn init_sun_system(mut commands: Commands, solar_system_assets: Res<SolarSys
         Transform::from_translation(Vec3::ZERO).with_scale(Vec3::splat(0.02)),
         Sprite::from(solar_system_assets.sun.clone()),
         Sun
+    ));
+
+    info!("Adding crash image");
+    commands.spawn((
+        Name::new("crash"),
+        Transform::from_translation(Vec3::ZERO).with_scale(Vec3::splat(0.02)),
+        Sprite::from(solar_system_assets.crash.clone())
+        
     ));
 }
 

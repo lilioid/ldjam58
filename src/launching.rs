@@ -5,6 +5,7 @@ use crate::collision::HitBox;
 use crate::physics::calc_gravity::Attractee;
 use crate::physics::directional_forces::{GravityForce, Mass};
 use crate::physics::velocity::Velocity;
+use crate::score::Score;
 use crate::sun_system::navigation_instruments::NavigationInstruments;
 use crate::sun_system::{Satellite, SolarSystemAssets};
 use crate::sun_system::thruster::{Thruster, ThrusterDirection};
@@ -27,7 +28,7 @@ pub(super) fn plugin(app: &mut App) {
             start_new_launch.run_if(input_just_released(MouseButton::Left)),
             record_launch_time.run_if(input_just_pressed(MouseButton::Left)),
             deactivate_old_sats.run_if(input_just_released(MouseButton::Left)),
-
+            
             update_launch_pad_ui,
         ),
     );
@@ -77,7 +78,14 @@ fn start_new_launch(
     solar_system_assets: Res<SolarSystemAssets>,
     mut launch_state: ResMut<LaunchState>,
     time: Res<Time>,
+    mut score: ResMut<Score>,
 ) {
+    info!("Pay energy");
+    if(score.energy_stored >= 1.0) {
+        score.energy_stored -= 1f32;
+    }else{
+        return;
+    }
     let launch_pad_transform = launch_pad_query.single().unwrap();
     let launch_position = launch_pad_transform.translation;
 
