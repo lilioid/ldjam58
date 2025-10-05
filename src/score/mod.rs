@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use crate::GameplaySystem;
+use crate::launching::CollectorStats;
 use crate::screens::Screen;
 use crate::sun_system::{Satellite, Sun};
 
@@ -17,7 +18,7 @@ pub struct Score {
 
 fn update_score(
     mut score: ResMut<Score>,
-    satellite_query: Query<(&Transform), With<Satellite>>,
+    mut satellite_query: Query<(&Transform, &mut CollectorStats), With<Satellite>>,
     sun_query: Query<(&Transform), (With<Sun>, Without<Satellite>)>,
     time: Res<Time>,
 ) {
@@ -27,10 +28,12 @@ fn update_score(
 
     score.energy_rate = 0.0;
 
-    for satellite_transform in satellite_query.iter() {
+    for (satellite_transform, mut collector_stats) in satellite_query.iter_mut() {
         let distance = satellite_transform.translation.distance(sun_position);
         if distance > 0.0 {
-            score.energy_rate += 1.0 / distance;
+            let individual_rate = 1.0 / distance;
+            collector_stats.energy_rate = individual_rate;
+            score.energy_rate += individual_rate;
         }
     }
 

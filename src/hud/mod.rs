@@ -1,18 +1,25 @@
+use crate::GameplaySystem;
+use crate::collision::FatalCollisionEvent;
+use crate::launching::{LaunchPad, LaunchState};
 use crate::score::Score;
+use crate::screens::Screen;
 use crate::sun_system::SolarSystemAssets;
 use bevy::prelude::*;
 use bevy::ui_render::stack_z_offsets::BORDER;
-use crate::collision::FatalCollisionEvent;
-use crate::screens::Screen;
 
 pub struct HudPlugin;
 
 impl Plugin for HudPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(Screen::Gameplay), setup_hud)
-            .add_systems(Update, (update_hud, update_crash_indicators));
+            .add_systems(
+                Update,
+                (update_hud, update_crash_indicators, update_launch_pad_ui).in_set(GameplaySystem),
+            );
         app.add_observer(handle_fatal_collision_event_for_hud);
-        app.insert_resource(HudState { just_destroyed: None });
+        app.insert_resource(HudState {
+            just_destroyed: None,
+        });
     }
 }
 
@@ -29,6 +36,8 @@ struct CrashIndicator {
     blink_state: bool,
 }
 
+#[derive(Component)]
+struct LaunchBarText;
 
 #[derive(Resource)]
 struct HudState {
@@ -67,7 +76,6 @@ fn setup_hud(mut commands: Commands, solar_system_assets: Res<SolarSystemAssets>
                     ..default()
                 },
                 TextColor(Color::xyz(0.4811, 0.3064, 0.0253)),
-
                 EnergyRateText
             ),
             (
@@ -87,6 +95,39 @@ fn setup_hud(mut commands: Commands, solar_system_assets: Res<SolarSystemAssets>
             )
         ],
     ));
+
+    commands.spawn((
+        Node {
+            position_type: PositionType::Absolute,
+            bottom: Val::Px(15.0),
+            right: Val::Px(15.0),
+            width: Val::Px(45.0),
+            height: Val::Px(550.0),
+            border: UiRect::all(Val::Px(BORDER)),
+            ..default()
+        },
+        BackgroundColor(Color::srgb(0.0, 0.0, 0.0)),
+        Outline {
+            width: Val::Px(2.0),
+            offset: Default::default(),
+            color: Color::xyz(0.4811, 0.3064, 0.0253),
+        },
+        children![(
+            LaunchBarText,
+            Text::new(get_vertical_ascii_bar(0.0)),
+            Node {
+                position_type: PositionType::Absolute,
+                bottom: Val::Px(15.0),
+                right: Val::Px(15.0),
+                ..default()
+            },
+            TextFont {
+                font: solar_system_assets.font.clone(),
+                ..default()
+            },
+            TextColor(Color::xyz(0.4811, 0.3064, 0.0253)),
+        )],
+    ));
 }
 
 fn update_hud(
@@ -102,11 +143,19 @@ fn update_hud(
 ) {
     if player_data.is_changed() {
         for (mut text, _) in energy_rate_query.iter_mut() {
-            text.0 = format!("ENERGY RATE\n{} {:.5}GW", get_ascii_bar(player_data.energy_rate.clamp(0.0, 1.0)),player_data.energy_rate)
+            text.0 = format!(
+                "ENERGY RATE\n{} {:.5}GW",
+                get_ascii_bar(player_data.energy_rate.clamp(0.0, 1.0)),
+                player_data.energy_rate
+            )
         }
 
         for (mut text, _) in energy_storage_query.iter_mut() {
-            text.0 = format!("TOTAL:\n{} {:.2}GWh", get_ascii_bar((player_data.energy_stored / 10.0).clamp(0.0, 1.0)),player_data.energy_stored)
+            text.0 = format!(
+                "TOTAL:\n{} {:.2}GWh",
+                get_ascii_bar((player_data.energy_stored / 10.0).clamp(0.0, 1.0)),
+                player_data.energy_stored
+            )
         }
     }
 }
@@ -122,9 +171,16 @@ fn get_ascii_bar(percentage: f32) -> String {
     format!("{}{}", filled_part, empty_part)
 }
 
-fn handle_fatal_collision_event_for_hud(event: On<FatalCollisionEvent>, mut commands: Commands, entity_query: Query<(&Transform, Entity)>, solar_system_assets:  Res<SolarSystemAssets>, mut just_destroyed: ResMut<HudState>) {
-    let (entity_transform, _) = entity_query.get(event.destroyed).expect("Wanted to get transform of destroyed entity but entity does not exist!");
-
+fn handle_fatal_collision_event_for_hud(
+    event: On<FatalCollisionEvent>,
+    mut commands: Commands,
+    entity_query: Query<(&Transform, Entity)>,
+    solar_system_assets: Res<SolarSystemAssets>,
+    mut just_destroyed: ResMut<HudState>,
+) {
+    let (entity_transform, _) = entity_query
+        .get(event.destroyed)
+        .expect("Wanted to get transform of destroyed entity but entity does not exist!");
 
     if just_destroyed.just_destroyed == Some(event.other) {
         //already showing crash indicator for the other entity; skipping to avoid overlapping indicators
@@ -143,8 +199,6 @@ fn handle_fatal_collision_event_for_hud(event: On<FatalCollisionEvent>, mut comm
     ));
 
     just_destroyed.just_destroyed = Some(event.destroyed);
-
-
 }
 
 fn update_crash_indicators(
@@ -175,4 +229,41 @@ fn update_crash_indicators(
             }
         }
     }
+}
+
+fn update_launch_pad_ui(
+    mut launch_bar_query: Query<&mut Text, With<LaunchBarText>>,
+    time: Res<Time>,
+    launch_state: Res<LaunchState>,
+) {
+    let mut launch_bar_text = launch_bar_query.single_mut().unwrap();
+
+    if let Some(launch_start_time) = launch_state.launched_at_time {
+        let held_duration = time.elapsed_secs_f64() - launch_start_time;
+        let clamped_duration = held_duration.min(1.0);
+
+        let vertical_bar = get_vertical_ascii_bar(clamped_duration as f32);
+        launch_bar_text.0 = vertical_bar;
+    } else {
+        launch_bar_text.0 = get_vertical_ascii_bar(0.0);
+    }
+}
+
+fn get_vertical_ascii_bar(percentage: f32) -> String {
+    let total_bars = 20;
+    let filled_bars = (percentage * total_bars as f32).round() as usize;
+
+    let mut result = String::from("╦\n");
+
+    for i in 0..total_bars {
+        if i >= (total_bars - filled_bars) {
+            result.push('║');
+        } else {
+            result.push('│');
+        }
+        result.push('\n');
+    }
+
+    result.push('╩');
+    result
 }

@@ -12,14 +12,19 @@ use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 
 #[derive(Component)]
-struct LaunchPad;
+pub struct LaunchPad;
 
-#[derive(Component)]
-struct LaunchBar;
+
 
 #[derive(Resource)]
-struct LaunchState {
-    launched_at_time: Option<f64>,
+pub struct LaunchState {
+    pub launched_at_time: Option<f64>,
+}
+
+#[derive(Component)]
+pub struct CollectorStats {
+    pub energy_rate: f32,
+    pub total_collected: f32,
 }
 
 pub(super) fn plugin(app: &mut App) {
@@ -29,7 +34,6 @@ pub(super) fn plugin(app: &mut App) {
             start_new_launch.run_if(input_just_released(MouseButton::Left)),
             record_launch_time.run_if(input_just_pressed(MouseButton::Left)),
             deactivate_old_sats.run_if(input_just_released(MouseButton::Left)),
-            update_launch_pad_ui,
         )
             .in_set(GameplaySystem),
     );
@@ -43,30 +47,6 @@ pub fn make_launchpad() -> impl Bundle {
         Name::new("LaunchPad"),
         Transform::from_translation(Vec3::new(90.0, 0.0, 0.0)).with_scale(Vec3::splat(0.1)),
         LaunchPad,
-        Node {
-            bottom: Val::Px(25.0),
-            right: Val::Px(25.0),
-            width: Val::Px(50.0),
-            height: Val::Px(350.0),
-            position_type: PositionType::Absolute,
-            align_self: AlignSelf::FlexEnd,
-            justify_self: JustifySelf::End,
-            flex_wrap: FlexWrap::Wrap,
-            ..default()
-        },
-        BackgroundColor(Color::srgb(0.25, 0.25, 0.25)),
-        children![(
-            LaunchBar,
-            Node {
-                margin: UiRect::all(Val::Px(5.0)),
-                width: Val::Px(40.0),
-                height: Val::Px(0.0),
-                position_type: PositionType::Relative,
-                align_self: AlignSelf::End,
-                ..default()
-            },
-            BackgroundColor(Color::srgb(1.0, 1.0, 1.0)),
-        )],
     )
 }
 
@@ -127,6 +107,21 @@ fn start_new_launch(
         HitBox { radius: 5.0 },
         NavigationInstruments,
         Satellite,
+        CollectorStats {
+            energy_rate: 0.0,
+            total_collected: 0.0,
+        },
+        //attach a text entity to show the energy rate of this satellite
+        children![(
+            Node {
+                position_type: PositionType::Relative,
+                ..default()
+            },
+            Text::from("0.0 GW" ),
+            TextColor(Color::WHITE),
+            Name::new("EnergyRateText"),
+        )],
+
     ));
 
     launch_state.launched_at_time = None;
@@ -149,22 +144,4 @@ fn deactivate_old_sats(
     }
 }
 
-fn update_launch_pad_ui(
-    launch_pad_query: Query<&Transform, With<LaunchPad>>,
-    mut launch_bar_query: Query<&mut Node, With<LaunchBar>>,
-    time: Res<Time>,
-    launch_state: Res<LaunchState>,
-) {
-    let launch_pad_transform = launch_pad_query.single().unwrap();
-    let launch_pad_height = launch_pad_transform.scale.y * 3400.0;
 
-    if let Some(launch_start_time) = launch_state.launched_at_time {
-        let held_duration = time.elapsed_secs_f64() - launch_start_time;
-        let clamped_duration = held_duration.min(1.0); //cap at 1 secs
-        let mut launch_bar_style = launch_bar_query.single_mut().unwrap();
-        launch_bar_style.height = Val::Px((clamped_duration as f32) * launch_pad_height);
-    } else {
-        let mut launch_bar_style = launch_bar_query.single_mut().unwrap();
-        launch_bar_style.height = Val::Px(0.0);
-    }
-}
