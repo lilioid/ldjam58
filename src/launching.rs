@@ -1,3 +1,4 @@
+use std::fmt::Debug;
 use bevy::color::palettes::basic::GREEN;
 use crate::GameplaySystem;
 use crate::collision::HitBox;
@@ -120,11 +121,32 @@ fn start_new_launch(
         TextColor(Color::from(GREEN)),
         Name::new("EnergyRateText"),
         )],
+        Pickable::default(),
 
-    ));
+    ))
+        .observe(on_hover_collector_over)
+
+    ;
 
     launch_state.launched_at_time = None;
 }
+
+fn on_hover_collector_over(
+    ev: On<Pointer<Over>>,
+    mut commands: Commands,
+    query: Query<Entity, With<NavigationInstruments>>,
+) {
+    //add the navigation instruments to the satellite
+    commands.entity(ev.entity).insert(NavigationInstruments);
+
+    //remove it from all other satellites
+    for entity in query.iter() {
+        if entity != ev.entity {
+            commands.entity(entity).remove::<NavigationInstruments>();
+        }
+    }
+}
+
 
 fn record_launch_time(time: Res<Time>, mut launch_state: ResMut<LaunchState>, score: Res<Score>) {
     if (score.energy_stored < 0.2) {
