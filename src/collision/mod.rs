@@ -67,15 +67,11 @@ fn check_for_collisions(
                     });
                 } else if (isAttractor2) {
                 } else {
-                    info!("lala!");
                     commands.trigger(FatalCollisionEvent {
                         destroyed: entity,
                         other: entity_check,
                     });
                 }
-                //info!("Collision found");
-                // if entity is not attractor delete
-                // attracted and attracted ?
             }
         }
     }
