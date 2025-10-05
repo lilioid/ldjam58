@@ -75,6 +75,15 @@ pub struct SolarSystemAssets {
     #[dependency]
     pub(crate) font: Handle<Font>,
 
+    #[dependency]
+    pub crash_sound: Handle<AudioSource>,
+
+    #[dependency]
+    pub warning_sound: Handle<AudioSource>,
+
+    #[dependency]
+    pub music_loop: Handle<AudioSource>,
+
 }
 
 #[derive(Component)]
@@ -100,6 +109,9 @@ impl FromWorld for SolarSystemAssets {
             collector: assets.load("satellite.png"),
             bg: assets.load("retro_grid_bg.png"),
             font: assets.load("fonts/lucon.ttf"),
+            crash_sound: assets.load("sounds/collision.wav"),
+            warning_sound: assets.load("sounds/beepx3.wav"),
+            music_loop: assets.load("sounds/music_loop.wav"),
         }
     }
 }

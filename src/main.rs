@@ -13,6 +13,7 @@ mod launching;
 mod collision;
 mod score;
 mod hud;
+mod sound;
 
 use bevy::log::LogPlugin;
 use bevy::{asset::AssetMetaCheck, prelude::*};
@@ -67,7 +68,8 @@ impl Plugin for AppPlugin {
             launching::plugin,
             collision::plugin,
             score::plugin,
-            hud::HudPlugin
+            hud::HudPlugin,
+            sound::SoundPlugin,
         ));
 
         // Tell bevy that our AppSystems should always be executed in the below order

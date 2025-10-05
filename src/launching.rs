@@ -1,3 +1,4 @@
+use bevy::color::palettes::basic::GREEN;
 use crate::GameplaySystem;
 use crate::collision::HitBox;
 use crate::physics::calc_gravity::Attractee;
@@ -111,15 +112,12 @@ fn start_new_launch(
             energy_rate: 0.0,
             total_collected: 0.0,
         },
-        //attach a text entity to show the energy rate of this satellite
         children![(
-            Node {
-                position_type: PositionType::Relative,
-                ..default()
-            },
-            Text::from("0.0 GW" ),
-            TextColor(Color::WHITE),
-            Name::new("EnergyRateText"),
+            Transform::from_translation(Vec3::new(0.0, 0.0, 1.0))
+            .with_scale(Vec3::splat(100.0)),
+        Text::from("0.0 GW"),
+        TextColor(Color::from(GREEN)),
+        Name::new("EnergyRateText"),
         )],
 
     ));
@@ -127,7 +125,10 @@ fn start_new_launch(
     launch_state.launched_at_time = None;
 }
 
-fn record_launch_time(time: Res<Time>, mut launch_state: ResMut<LaunchState>) {
+fn record_launch_time(time: Res<Time>, mut launch_state: ResMut<LaunchState>, score: Res<Score>) {
+    if (score.energy_stored < 0.2) {
+        return;
+    }
     if launch_state.launched_at_time.is_none() {
         launch_state.launched_at_time = Some(time.elapsed_secs_f64());
     }

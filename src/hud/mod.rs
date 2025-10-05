@@ -45,6 +45,7 @@ struct HudState {
 }
 
 fn setup_hud(mut commands: Commands, solar_system_assets: Res<SolarSystemAssets>) {
+    // TOP LEFT: Energy Rate and Total Energy Storage
     let container = commands.spawn((
         Node {
             position_type: PositionType::Absolute,
@@ -96,6 +97,9 @@ fn setup_hud(mut commands: Commands, solar_system_assets: Res<SolarSystemAssets>
         ],
     ));
 
+    let text_center = Justify::Center;
+
+    // BOTTOM RIGHT: Launch Pad UI
     commands.spawn((
         Node {
             position_type: PositionType::Absolute,
@@ -112,21 +116,41 @@ fn setup_hud(mut commands: Commands, solar_system_assets: Res<SolarSystemAssets>
             offset: Default::default(),
             color: Color::xyz(0.4811, 0.3064, 0.0253),
         },
-        children![(
-            LaunchBarText,
-            Text::new(get_vertical_ascii_bar(0.0)),
-            Node {
-                position_type: PositionType::Absolute,
-                bottom: Val::Px(15.0),
-                right: Val::Px(15.0),
-                ..default()
-            },
-            TextFont {
-                font: solar_system_assets.font.clone(),
-                ..default()
-            },
-            TextColor(Color::xyz(0.4811, 0.3064, 0.0253)),
-        )],
+        children![
+            (
+                Text::new("PRESS\nLMB"),
+                Node {
+                    position_type: PositionType::Absolute,
+                    bottom: Val::Px(15.0),
+                    left: Val::Px(5.0),
+                    ..default()
+                },
+                TextLayout::new_with_justify(text_center),
+                TextColor(Color::xyz(0.4811, 0.3064, 0.0253)),
+                TextFont {
+                    font: solar_system_assets.font.clone(),
+                    font_size: 12.0,
+                    ..default()
+                },
+            ),
+            (
+                LaunchBarText,
+                Text::new(get_vertical_ascii_bar(0.0)),
+
+
+                Node {
+                    position_type: PositionType::Absolute,
+                    bottom: Val::Px(45.0),
+                    right: Val::Px(15.0),
+                    ..default()
+                },
+                TextFont {
+                    font: solar_system_assets.font.clone(),
+                    ..default()
+                },
+                TextColor(Color::xyz(0.4811, 0.3064, 0.0253)),
+            ),
+        ],
     ));
 }
 
@@ -188,7 +212,7 @@ fn handle_fatal_collision_event_for_hud(
     }
     commands.spawn((
         Name::new("crash"),
-        Transform::from_translation(entity_transform.translation).with_scale(Vec3::splat(0.015)),
+        Transform::from_translation(entity_transform.translation).with_scale(Vec3::splat(0.01)),
         Sprite::from(solar_system_assets.crash.clone()),
         CrashIndicator {
             timer: Timer::from_seconds(0.15, TimerMode::Repeating),
@@ -250,7 +274,7 @@ fn update_launch_pad_ui(
 }
 
 fn get_vertical_ascii_bar(percentage: f32) -> String {
-    let total_bars = 20;
+    let total_bars = 19;
     let filled_bars = (percentage * total_bars as f32).round() as usize;
 
     let mut result = String::from("╦\n");
