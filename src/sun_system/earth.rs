@@ -9,6 +9,7 @@ pub(super) fn plugin(app: &mut App) {
     app.load_resource::<EarthAssets>();
     app.add_systems(OnEnter(Screen::Gameplay), init_earth);
     app.add_systems(Update, move_earth_around_sun.in_set(GameplaySystem));
+    app.add_systems(Update, draw_arrow.in_set(GameplaySystem));
 }
 
 #[derive(Resource, Asset, Reflect, Debug, Clone)]
@@ -38,7 +39,7 @@ fn init_earth(mut commands: Commands, assets: Res<EarthAssets>) {
     commands.spawn((
         Name::new("Earth"),
         Earth,
-        Transform::from_translation(Vec3::new(90.0, 0.0, 0.0)).with_scale(Vec3::splat(0.004)),
+        Transform::from_translation(Vec3::new(100.0, 0.0, 0.0)).with_scale(Vec3::splat(0.004)),
         Sprite::from(assets.earth.clone()),
         children![ 
             make_launchpad(),
@@ -67,4 +68,38 @@ fn move_earth_around_sun(
         let mut launch_pad_transform = launch_pad_query.single_mut().unwrap();
         launch_pad_transform.translation = earth_transform.translation;
     }
+}
+
+fn draw_arrow(
+    mut gizmos: Gizmos,
+    earth_query: Query<&Transform, With<Earth>>,
+    camera_query: Query<(&Camera, &GlobalTransform)>,
+    windows: Query<&Window>,
+) {
+    let Ok(earth_transform) = earth_query.single() else {
+        return;
+    };
+    let Ok((camera, camera_transform)) = camera_query.single() else {
+        return;
+    };
+    let Some(window) = windows.iter().next() else {
+        return;
+    };
+    let Some(cursor_position) = window.cursor_position() else {
+        return;
+    };
+    let Ok(mouse_world_pos) = camera.viewport_to_world_2d(camera_transform, cursor_position) else {
+        return;
+    };
+
+    let earth_pos = earth_transform.translation.truncate();
+    let direction = (mouse_world_pos - earth_pos).normalize_or_zero();
+
+    let max_length = 100.0;
+    let actual_distance = earth_pos.distance(mouse_world_pos);
+    let arrow_length = actual_distance.min(max_length);
+
+    let arrow_end = earth_pos + direction * arrow_length;
+
+    gizmos.arrow_2d(earth_pos, arrow_end, Color::WHITE);
 }
