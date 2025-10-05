@@ -27,7 +27,7 @@ fn update_score(
     let sun_transform = sun_query.single().unwrap();
     let sun_position = sun_transform.translation;
 
-    score.energy_rate = 0.0;
+    score.energy_rate = 0.01;
 
     for (satellite_transform, mut collector_stats) in satellite_query.iter_mut() {
         let distance = satellite_transform.translation.distance(sun_position);
