@@ -103,7 +103,7 @@ fn start_new_launch(
         0.1
     };
 
-    force_multiplier = force_multiplier * 5.0;
+    force_multiplier = force_multiplier * 10.0;
 
     commands.spawn((
         Name::new("Collector"),
