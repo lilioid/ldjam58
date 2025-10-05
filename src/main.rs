@@ -13,6 +13,7 @@ mod physics;
 mod score;
 mod screens;
 mod sun_system;
+mod sound;
 
 use std::ops::{Deref, DerefMut};
 use crate::screens::Screen;
