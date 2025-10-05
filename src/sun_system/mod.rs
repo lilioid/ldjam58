@@ -2,14 +2,14 @@ pub mod navigation_instruments;
 pub mod thruster;
 mod earth;
 
-use crate::AppSystems;
+use crate::{AppSystems, GameplaySystem};
 use crate::asset_tracking::LoadResource;
 use crate::physics::calc_gravity::{Attractee, Attractor};
 use crate::physics::directional_forces::{GravityForce, Mass};
 use crate::physics::velocity::Velocity;
 use crate::screens::Screen;
 use crate::sun_system::navigation_instruments::NavigationInstruments;
-use crate::sun_system::thruster::{Thruster, ThrusterDirection};
+use crate::sun_system::thruster::{thruster_use_fuel, Thruster, ThrusterDirection};
 use bevy::input::common_conditions::{input_just_pressed, input_just_released};
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
@@ -52,6 +52,8 @@ pub(super) fn plugin(app: &mut App) {
             .run_if(in_state(Screen::Gameplay))
             .in_set(AppSystems::Update),
     );
+    
+    app.add_systems(Update, thruster_use_fuel.in_set(GameplaySystem));
 }
 
 #[derive(Resource, Asset, Clone, Reflect)]

@@ -30,6 +30,11 @@ pub struct CollectorStats {
     pub total_collected: f32,
 }
 
+#[derive(Component)]
+pub struct Fuel {
+    pub amount: f32,
+}
+
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
         Update,
@@ -97,7 +102,7 @@ fn start_new_launch(
     force_multiplier = force_multiplier * 10.0;
 
     commands.spawn((
-        Name::new("Collector"),
+        Fuel { amount: 1.5 },
         Level { level: 1.0 },
         Attractee,
         GravityForce::default(),
@@ -121,7 +126,10 @@ fn start_new_launch(
         TextColor(Color::from(GREEN)),
         Name::new("EnergyRateText"),
         )],
+
         Pickable::default(),
+
+
 
     ))
         .observe(on_hover_collector_over)
@@ -134,15 +142,17 @@ fn start_new_launch(
 fn on_hover_collector_over(
     ev: On<Pointer<Over>>,
     mut commands: Commands,
-    query: Query<Entity, With<NavigationInstruments>>,
+    query: Query<Entity, (With<NavigationInstruments>, With<Thruster>)>,
 ) {
-    //add the navigation instruments to the satellite
+
     commands.entity(ev.entity).insert(NavigationInstruments);
+    commands.entity(ev.entity).insert(Thruster::new(ThrusterDirection::Retrograde, 2.0));
 
     //remove it from all other satellites
     for entity in query.iter() {
         if entity != ev.entity {
             commands.entity(entity).remove::<NavigationInstruments>();
+            commands.entity(entity).remove::<Thruster>();
         }
     }
 }

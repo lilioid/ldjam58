@@ -3,6 +3,7 @@ use crate::physics::directional_forces::ThrustForce;
 use crate::physics::velocity::Velocity;
 use bevy::prelude::*;
 use std::ops::Neg;
+use crate::launching::Fuel;
 
 pub const THRUSTER_KEY: KeyCode = KeyCode::Space;
 
@@ -94,4 +95,17 @@ pub fn apply_thrust_force(
                 i_thrust_force.0 = direction.clamp_length(1.0, 1.0) * i_thruster.strength;
             }
         });
+}
+
+pub fn thruster_use_fuel(mut thruster_query: Query<(&mut Thruster, &mut Fuel)>, time: Res<Time>) {
+    for (mut thruster, mut fuel) in thruster_query.iter_mut() {
+        if thruster.active && fuel.amount <= 0.0 {
+            thruster.active = false;
+        } else if thruster.active && fuel.amount > 0.0 {
+            fuel.amount -= time.delta_secs();
+            if fuel.amount < 0.0 {
+                fuel.amount = 0.0;
+            }
+        }
+    }
 }
