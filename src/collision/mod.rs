@@ -21,9 +21,9 @@ pub struct HitBox {
 }
 
 #[derive(Event)]
-struct FatalCollisionEvent {
-    destroyed: Entity,
-    other: Entity,
+pub struct FatalCollisionEvent {
+    pub destroyed: Entity,
+    pub other: Entity,
 }
 
 pub fn is_colliding(
@@ -58,20 +58,8 @@ fn check_for_collisions(
                 .distance(check_transform.translation);
             if distance < (hitbox1.radius + hitbox2.radius) {
                 info!("Adding crash image");
-                commands.spawn((
-                    Name::new("crash"),
-                    Transform::from_translation(entity_transform.translation)
-                        .with_scale(Vec3::splat(0.02)),
-                    Sprite::from(solarRes.crash.clone()),
-                ));
-                commands.spawn((
-                    Name::new("crash"),
-                    Transform::from_translation(check_transform.translation)
-                        .with_scale(Vec3::splat(0.02)),
-                    Sprite::from(solarRes.crash.clone()),
-                ));
-                if (isAttractor) {
-                    //attractor involved delete attracted
+
+                if(isAttractor){//attractor involved delete attracted
                     //delete attracted ( mark for cleanup system)
                     commands.trigger(FatalCollisionEvent {
                         destroyed: entity_check,

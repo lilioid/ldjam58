@@ -2,7 +2,7 @@ use crate::score::Score;
 use crate::sun_system::SolarSystemAssets;
 use bevy::prelude::*;
 use bevy::ui_render::stack_z_offsets::BORDER;
-use crate::GameplaySystem;
+use crate::collision::FatalCollisionEvent;
 use crate::screens::Screen;
 
 pub struct HudPlugin;
@@ -10,7 +10,9 @@ pub struct HudPlugin;
 impl Plugin for HudPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(Screen::Gameplay), setup_hud)
-            .add_systems(Update, update_hud);
+            .add_systems(Update, (update_hud, update_crash_indicators));
+        app.add_observer(handle_fatal_collision_event_for_hud);
+        app.insert_resource(HudState { just_destroyed: None });
     }
 }
 
@@ -19,6 +21,19 @@ struct EnergyRateText;
 
 #[derive(Component)]
 struct EnergyStorageText;
+
+#[derive(Component)]
+struct CrashIndicator {
+    timer: Timer,
+    blink_count: u32,
+    blink_state: bool,
+}
+
+
+#[derive(Resource)]
+struct HudState {
+    just_destroyed: Option<Entity>,
+}
 
 fn setup_hud(mut commands: Commands, solar_system_assets: Res<SolarSystemAssets>) {
     let container = commands.spawn((
@@ -105,4 +120,59 @@ fn get_ascii_bar(percentage: f32) -> String {
     let empty_part = "░".repeat(empty_bars);
 
     format!("{}{}", filled_part, empty_part)
+}
+
+fn handle_fatal_collision_event_for_hud(event: On<FatalCollisionEvent>, mut commands: Commands, entity_query: Query<(&Transform, Entity)>, solar_system_assets:  Res<SolarSystemAssets>, mut just_destroyed: ResMut<HudState>) {
+    let (entity_transform, _) = entity_query.get(event.destroyed).expect("Wanted to get transform of destroyed entity but entity does not exist!");
+
+
+    if just_destroyed.just_destroyed == Some(event.other) {
+        //already showing crash indicator for the other entity; skipping to avoid overlapping indicators
+        return;
+    }
+    commands.spawn((
+        Name::new("crash"),
+        Transform::from_translation(entity_transform.translation).with_scale(Vec3::splat(0.015)),
+        Sprite::from(solar_system_assets.crash.clone()),
+        CrashIndicator {
+            timer: Timer::from_seconds(0.15, TimerMode::Repeating),
+            blink_count: 0,
+            blink_state: true,
+        },
+        Visibility::Visible,
+    ));
+
+    just_destroyed.just_destroyed = Some(event.destroyed);
+
+
+}
+
+fn update_crash_indicators(
+    mut commands: Commands,
+    time: Res<Time>,
+    mut query: Query<(Entity, &mut CrashIndicator, &mut Visibility)>,
+    mut hud_state: ResMut<HudState>,
+) {
+    for (entity, mut crash_indicator, mut visibility) in query.iter_mut() {
+        crash_indicator.timer.tick(time.delta());
+
+        if crash_indicator.timer.just_finished() {
+            if crash_indicator.blink_count < 4 {
+                crash_indicator.blink_state = !crash_indicator.blink_state;
+                *visibility = if crash_indicator.blink_state {
+                    Visibility::Visible
+                } else {
+                    Visibility::Hidden
+                };
+                crash_indicator.blink_count += 1;
+            } else if crash_indicator.blink_count == 4 {
+                *visibility = Visibility::Visible;
+                crash_indicator.timer = Timer::from_seconds(1.0, TimerMode::Once);
+                crash_indicator.blink_count += 1;
+            } else {
+                commands.entity(entity).despawn();
+                hud_state.just_destroyed = None;
+            }
+        }
+    }
 }
