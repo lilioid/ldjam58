@@ -12,6 +12,7 @@ use bevy::input::common_conditions::{input_just_pressed, input_just_released};
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 
+
 #[derive(Component)]
 pub struct LaunchPad;
 
@@ -46,7 +47,7 @@ pub(super) fn plugin(app: &mut App) {
 pub fn make_launchpad() -> impl Bundle {
     (
         Name::new("LaunchPad"),
-        Transform::from_translation(Vec3::new(90.0, 0.0, 0.0)).with_scale(Vec3::splat(0.1)),
+        Transform::default(),
         LaunchPad,
     )
 }
