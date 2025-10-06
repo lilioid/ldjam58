@@ -59,9 +59,9 @@ pub struct AsteroidConfig {
 impl Default for AsteroidConfig {
     fn default() -> Self {
         Self {
-            spawn_chance: 5,
-            min_time_between: 30,
-            min_initial_wait: 1,
+            spawn_chance: 500,
+            min_time_between: 60,
+            min_initial_wait: 45,
             asteroid_gen_range: 2..6,
             cluster_radius: 10.0,
             min_distance: 10.0,
