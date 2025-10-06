@@ -14,3 +14,5 @@ X When Asteroids crash into sun, do not play sound
 X Indicate that spacebar can be pressed to slow down
 
 Scale Energy so that Positive Game over state is possible to reach
+
+# if possible trails
