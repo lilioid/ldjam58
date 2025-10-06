@@ -181,7 +181,7 @@ fn setup_hud(mut commands: Commands, solar_system_assets: Res<SolarSystemAssets>
                 ZoomLevelText,
                 Node {
                     position_type: PositionType::Relative,
-                    top: Val::Px(10.0),
+                    top: Val::Px(12.0),
                     left: Val::Px(15.0),
                     justify_content: JustifyContent::Center,
                     ..default()
