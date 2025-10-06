@@ -47,6 +47,12 @@ pub struct AsteroidConfig {
     pub min_initial_wait: usize,
     /// A range of how many asteroids should be spawned
     asteroid_gen_range: Range<usize>,
+    /// Radius in which asteroids are clustered
+    cluster_radius: f32,
+    /// Minimum distance between asteroids in a cluster
+    min_distance: f32,
+    /// Maximum attempts to place an asteroid in a cluster without violating the min_distance constraint
+    max_attempts: usize,
 }
 
 impl Default for AsteroidConfig {
@@ -56,6 +62,9 @@ impl Default for AsteroidConfig {
             min_time_between: 5,
             min_initial_wait: 1,
             asteroid_gen_range: 2..6,
+            cluster_radius: 30.0,
+            min_distance: 10.0,
+            max_attempts: 10,
         }
     }
 }
@@ -147,18 +156,35 @@ fn spawn_asteroids(
         ))
         .id();
 
-    for i in 0..num_asteroids {
-        const DISTANCE: f32 = 15.0;
-        let x_offset = (i as f32 * DISTANCE) - (num_asteroids as f32 * DISTANCE / 2.0) + 0.5 * DISTANCE;
 
-        commands.spawn((
-            Asteroid,
-            ChildOf(swarm),
-            Transform::from_translation(Vec3::new(x_offset, 0.0, 0.0))
-                .with_scale(Vec3::splat(0.01))
-                .with_rotation(Quat::from_axis_angle(Vec3::X, PI)),
-            Sprite::from(assets.asteroid.clone()),
-        ));
+    let mut positions = Vec::new();
+
+    for _ in 0..num_asteroids {
+        let mut position = None;
+
+        for _ in 0..cfg.max_attempts {
+            let x = random.random_range(-cfg.cluster_radius as i32..cfg.cluster_radius as i32) as f32;
+            let y = random.random_range(-cfg.cluster_radius as i32..cfg.cluster_radius as i32) as f32;
+            let candidate = Vec2::new(x, y);
+
+            if positions.iter().all(|&pos: &Vec2| pos.distance(candidate) >= cfg.min_distance) {
+                position = Some(candidate);
+                break;
+            }
+        }
+
+        if let Some(pos) = position {
+            positions.push(pos);
+
+            commands.spawn((
+                Asteroid,
+                ChildOf(swarm),
+                Transform::from_translation(Vec3::new(pos.x, pos.y, 0.0))
+                    .with_scale(Vec3::splat(0.01))
+                    .with_rotation(Quat::from_axis_angle(Vec3::X, PI)),
+                Sprite::from(assets.asteroid.clone()),
+            ));
+        }
     }
 }
 
