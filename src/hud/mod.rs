@@ -4,6 +4,7 @@ use crate::launching::{LaunchPad, LaunchState};
 use crate::score::Score;
 use crate::screens::Screen;
 use crate::sun_system::SolarSystemAssets;
+use crate::sun_system::asteroids::AsteroidSwarmSpawned;
 use bevy::prelude::*;
 use bevy::ui_render::stack_z_offsets::BORDER;
 
@@ -14,9 +15,10 @@ impl Plugin for HudPlugin {
         app.add_systems(OnEnter(Screen::Gameplay), setup_hud)
             .add_systems(
                 Update,
-                (update_hud, update_crash_indicators, update_launch_pad_ui, update_zoom_level, update_explanation_text).in_set(GameplaySystem),
+                (update_hud, update_crash_indicators, update_launch_pad_ui, update_zoom_level, update_explanation_text, update_debris_warning).in_set(GameplaySystem),
             );
         app.add_observer(handle_fatal_collision_event_for_hud);
+        app.add_observer(handle_asteroid_swarm_spawned);
         app.insert_resource(HudState {
             just_destroyed: None,
             already_pressed_space: false,
@@ -59,6 +61,11 @@ struct HudState {
 
 #[derive(Component)]
 struct KardashevText;
+
+#[derive(Component)]
+struct DebrisWarning {
+    timer: Timer,
+}
 
 fn setup_hud(mut commands: Commands, solar_system_assets: Res<SolarSystemAssets>) {
     // TOP LEFT: Energy Rate and Total Energy Storage
@@ -254,10 +261,53 @@ fn setup_hud(mut commands: Commands, solar_system_assets: Res<SolarSystemAssets>
     ],
     ));
 
-
-    //MIDDLE OF SCREEN: Game-Over Popup
-
-
+    //MIDDLE OF SCREEN: DEBRIS WARNING
+    commands.spawn((
+        Node {
+            position_type: PositionType::Absolute,
+            width: Val::Percent(100.0),
+            height: Val::Percent(100.0),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            ..default()
+        },
+        Pickable::IGNORE,
+        Visibility::Hidden,
+        DebrisWarning {
+            timer: Timer::from_seconds(3.0, TimerMode::Once),
+        },
+        children![
+            (
+                Node {
+                    width: Val::Px(300.0),
+                    height: Val::Px(60.0),
+                    border: UiRect::all(Val::Px(BORDER)),
+                    justify_content: JustifyContent::Center,
+                    align_items: AlignItems::Center,
+                    ..default()
+                },
+                Pickable::IGNORE,
+                BackgroundColor(Color::srgb(0.0, 0.0, 0.0)),
+                Outline {
+                    width: Val::Px(3.0),
+                    offset: Default::default(),
+                    color: Color::xyz(0.4811, 0.3064, 0.0253),
+                },
+                children![
+                    (
+                        Text::new("DEBRIS WARNING ! !"),
+                        TextFont {
+                            font: solar_system_assets.font.clone(),
+                            font_size: 18.0,
+                            ..default()
+                        },
+                        TextColor(Color::xyz(0.4811, 0.3064, 0.0253)),
+                        Pickable::IGNORE,
+                    )
+                ],
+            )
+        ],
+    ));
 }
 
 fn update_hud(
@@ -435,3 +485,31 @@ fn update_explanation_text(
     }
 }
 
+fn update_debris_warning(
+    mut query: Query<(&mut DebrisWarning, &mut Visibility)>,
+    time: Res<Time>,
+) {
+    let Ok((mut warning, mut visibility)) = query.single_mut() else {
+        return;
+    };
+
+    // Update timer and hide when finished
+    if *visibility == Visibility::Visible {
+        warning.timer.tick(time.delta());
+        if warning.timer.finished() {
+            *visibility = Visibility::Hidden;
+        }
+    }
+}
+
+fn handle_asteroid_swarm_spawned(
+    _trigger: On<AsteroidSwarmSpawned>,
+    mut query: Query<(&mut DebrisWarning, &mut Visibility)>,
+) {
+    let Ok((mut warning, mut visibility)) = query.single_mut() else {
+        return;
+    };
+
+    warning.timer.reset();
+    *visibility = Visibility::Visible;
+}

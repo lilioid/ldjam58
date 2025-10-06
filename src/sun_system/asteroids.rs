@@ -104,6 +104,9 @@ pub struct AsteroidSwarm;
 #[require(Transform, Sprite)]
 pub struct Asteroid;
 
+#[derive(Event, Debug)]
+pub struct AsteroidSwarmSpawned;
+
 fn asteroid_spawning_system(
     mut commands: Commands,
     assets: Res<AsteroidAssets>,
@@ -132,7 +135,8 @@ fn asteroid_spawning_system(
     // if the backoff has been reached, spawn something if randomness lets us
     if randomness.random_ratio(1, cfg.spawn_chance as u32) {
         tracker.spawn_backoff_timer.reset();
-        spawn_asteroids(&mut commands, &cfg, &assets, &mut randomness);
+        let swarm = spawn_asteroids(&mut commands, &cfg, &assets, &mut randomness);
+        commands.trigger(AsteroidSwarmSpawned);
     }
 }
 
@@ -141,7 +145,7 @@ fn spawn_asteroids(
     cfg: &AsteroidConfig,
     assets: &AsteroidAssets,
     random: &mut RandomSource,
-) {
+) -> Entity {
     let num_asteroids = random.random_range(cfg.asteroid_gen_range.clone());
     let direction = random.random_range(-45..45) as f32 * PI / 180.0;
     let speed = random.random_range(10..20) as f32;
@@ -189,6 +193,8 @@ fn spawn_asteroids(
             ));
         }
     }
+
+    swarm
 }
 
 fn draw_swarm_debug(mut gizmos: Gizmos, query: Query<&GlobalTransform, With<AsteroidSwarm>>) {
