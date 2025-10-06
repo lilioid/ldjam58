@@ -9,6 +9,7 @@ use std::f32::consts::PI;
 use std::ops::Range;
 use std::time::Duration;
 use crate::collision::HitBox;
+use crate::sun_system::Level;
 
 pub fn plugin(app: &mut App) {
     app.load_resource::<AsteroidAssets>();
@@ -154,6 +155,7 @@ fn spawn_asteroids(
     let swarm = commands
         .spawn((
             AsteroidSwarm,
+            Level{level:-1.},
             Transform::from_translation(Vec3::new(0.0, -75.0, 0.0))
                 .with_rotation(Quat::from_axis_angle(Vec3::Z, direction)),
             InheritedVisibility::default(),
