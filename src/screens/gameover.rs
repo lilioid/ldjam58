@@ -2,7 +2,7 @@
 
 use bevy::input::common_conditions::input_just_pressed;
 use bevy::input::mouse::MouseWheel;
-use crate::sun_system::{init_sun_system, setup_grid_image, Satellite, Sun};
+use crate::sun_system::{init_sun_system, Satellite, Sun};
 use bevy::prelude::*;
 use bevy::time::common_conditions::paused;
 use crate::collision::FatalCollisionEvent;

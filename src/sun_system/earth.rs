@@ -96,5 +96,5 @@ fn draw_arrow(
 
     let arrow_end = earth_pos + direction * arrow_length;
 
-    gizmos.arrow_2d(earth_pos, arrow_end, Color::WHITE);
+    gizmos.arrow_2d(earth_pos, arrow_end, Color::xyz(0.1527, 0.0992, 0.0083));
 }

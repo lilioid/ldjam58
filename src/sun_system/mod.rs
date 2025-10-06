@@ -16,18 +16,6 @@ use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
 use crate::collision::HitBox;
 
-#[derive(Component)]
-struct TiledGrid {
-    cols: i32,
-    rows: i32,
-    tile_world_size: f32,
-}
-
-#[derive(Component)]
-struct GridIndex {
-    col: i32,
-    row: i32,
-}
 
 pub(super) fn plugin(app: &mut App) {
     app.add_plugins((earth::plugin, asteroids::plugin));
@@ -131,13 +119,5 @@ pub fn init_sun_system(mut commands: Commands, solar_system_assets: Res<SolarSys
         Transform::from_translation(Vec3::ZERO).with_scale(Vec3::splat(0.02)),
         Sprite::from(solar_system_assets.sun.clone()),
         Sun
-    ));
-}
-
-pub fn setup_grid_image(mut commands: Commands, solar_system_assets: Res<SolarSystemAssets>) {
-    commands.spawn((
-        Name::new("GridImage"),
-        Sprite::from(solar_system_assets.bg.clone()),
-        Transform::from_translation(Vec3::new(0.0, 0.0, -5.0)).with_scale(Vec3::splat(0.15))
     ));
 }
