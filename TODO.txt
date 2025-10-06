@@ -9,6 +9,6 @@ Finish/Fix Levels
 
 Asteroids should have individual hitboxes
 
-When Asteroids crash into sun, do not play sound
+X When Asteroids crash into sun, do not play sound
 
-Indicate that spacebar can be pressed to slow down
+X Indicate that spacebar can be pressed to slow down

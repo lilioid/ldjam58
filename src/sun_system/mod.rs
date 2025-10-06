@@ -1,7 +1,7 @@
 pub mod navigation_instruments;
 pub mod thruster;
 mod earth;
-mod asteroids;
+pub(crate) mod asteroids;
 
 use crate::{AppSystems, GameplaySystem};
 use crate::asset_tracking::LoadResource;
