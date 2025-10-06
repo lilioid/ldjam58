@@ -146,7 +146,7 @@ let collector_id = commands.spawn((
         Text2d::new("0"),
         Transform::default().with_translation(Vec3::new(0.0, -600.0, 0.0)).with_scale(Vec3::splat(10.0)),
         TextFont {
-            font_size: 32.0,
+            font_size: 27.0,
             ..default()
         },
         TextColor(Color::from(GREEN)),
@@ -159,7 +159,7 @@ let collector_id = commands.spawn((
         Text2d::new("0"),
         Transform::default().with_translation(Vec3::new(0.0, -1000.0, 0.0)).with_scale(Vec3::splat(10.0)),
         TextFont {
-            font_size: 32.0,
+            font_size: 27.0,
             ..default()
         },
         TextColor(Color::from(WHITE)),
