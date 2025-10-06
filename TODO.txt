@@ -7,3 +7,7 @@ Create and insert sounds:
 
 Finish/Fix Levels
 
+Asteroids should have individual hitboxes
+
+When Asteroids crash into sun, do not play sound
+
