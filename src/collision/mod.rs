@@ -95,7 +95,7 @@ fn check_for_collisions(
                     info!("crash Satellites");
 
                     // satellite 1
-                    if(level1.level == 1. && isAttractor2) {
+                    if(level1.level == 1.) {
                         if !destroyed_in_this_system.contains(&entity) {
                             commands.trigger(FatalCollisionEvent {
                                 destroyed: entity,
@@ -110,7 +110,7 @@ fn check_for_collisions(
                         });
                     }
                     // satellite 2
-                    if level2.level == 1. && isAttractor2 {
+                    if level2.level == 1. {
                         if !destroyed_in_this_system.contains(&entity_check) {
                             commands.trigger(FatalCollisionEvent {
                                 destroyed: entity_check,
