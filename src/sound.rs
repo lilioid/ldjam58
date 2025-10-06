@@ -16,10 +16,10 @@ impl Plugin for SoundPlugin {
 }
 
 fn setup_sound(mut commands: Commands, solar_system_assets: Res<SolarSystemAssets>) {
-    // commands.spawn((
-    //     AudioPlayer::new(solar_system_assets.music_loop.clone()),
-    //     PlaybackSettings::LOOP,
-    // ));
+    commands.spawn((
+        AudioPlayer::new(solar_system_assets.music_loop.clone()),
+        PlaybackSettings::LOOP,
+    ));
 }
 
 fn handle_fatal_collision_event_for_sound(
