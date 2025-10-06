@@ -27,7 +27,7 @@ pub struct LaunchState {
 #[derive(Component)]
 pub struct CollectorStats {
     pub energy_rate: f32,
-    pub total_collected: f32,
+    pub total_collected: f32
 }
 
 pub(super) fn plugin(app: &mut App) {
@@ -95,17 +95,29 @@ fn start_new_launch(
     };
 
     force_multiplier = force_multiplier * 10.0;
+    let sprite ;
+    let lvl ;
+    if (score.energy_stored > 2. && score.energy_stored <5.){
+        lvl=2.;
+        sprite = solar_system_assets.collector2.clone();
+    }else if (score.energy_stored >5.){
+        lvl=3.;
+        sprite = solar_system_assets.collector3.clone();
+    }else{
+        lvl=1.;
+        sprite= solar_system_assets.collector.clone()
+    }
 
-    commands.spawn((
+commands.spawn((
         Name::new("Collector"),
-        Level { level: 1.0 },
+        Level { level: lvl },
         Attractee,
         GravityForce::default(),
         Velocity(launch_direction.xy() * Vec2::splat(force_multiplier as f32)),
         Mass(1.0),
         Transform::from_translation(launch_position + launch_direction)
             .with_scale(Vec3::splat(0.015)),
-        Sprite::from(solar_system_assets.collector.clone()),
+        Sprite::from(sprite),
         Thruster::new(ThrusterDirection::Retrograde, 2.0),
         HitBox { radius: 5.0 },
         NavigationInstruments,
@@ -117,7 +129,7 @@ fn start_new_launch(
         children![(
             Transform::from_translation(Vec3::new(0.0, 0.0, 1.0))
             .with_scale(Vec3::splat(100.0)),
-        Text::from("0.0 GW"),
+        Text::from("0.0 PW"),
         TextColor(Color::from(GREEN)),
         Name::new("EnergyRateText"),
         )],
