@@ -14,11 +14,13 @@ impl Plugin for HudPlugin {
         app.add_systems(OnEnter(Screen::Gameplay), setup_hud)
             .add_systems(
                 Update,
-                (update_hud, update_crash_indicators, update_launch_pad_ui, update_zoom_level).in_set(GameplaySystem),
+                (update_hud, update_crash_indicators, update_launch_pad_ui, update_zoom_level, update_explanation_text).in_set(GameplaySystem),
             );
         app.add_observer(handle_fatal_collision_event_for_hud);
         app.insert_resource(HudState {
             just_destroyed: None,
+            already_pressed_space: false,
+            already_pressed_lmb: false,
         });
     }
 }
@@ -42,11 +44,17 @@ struct LaunchBarText;
 #[derive(Component)]
 struct ZoomLevelText;
 
+#[derive(Component)]
+struct ExplanationText;
 
+#[derive(Component)]
+struct ExplanationContainer;
 
 #[derive(Resource)]
 struct HudState {
     just_destroyed: Option<Entity>,
+    already_pressed_space: bool,
+    already_pressed_lmb: bool,
 }
 
 fn setup_hud(mut commands: Commands, solar_system_assets: Res<SolarSystemAssets>) {
@@ -196,6 +204,51 @@ fn setup_hud(mut commands: Commands, solar_system_assets: Res<SolarSystemAssets>
             )
         ],
     ));
+
+    //MIDDLE OF SCREEN: Explaination text
+
+    commands.spawn((
+        Node {
+            position_type: PositionType::Absolute,
+            width: Val::Percent(100.0),
+            height: Val::Percent(100.0),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            ..default()
+        },
+        children![
+        (
+            Node {
+                width: Val::Px(300.0),
+                height: Val::Px(45.0),
+                border: UiRect::all(Val::Px(BORDER)),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                ..default()
+            },
+            BackgroundColor(Color::srgb(0.0, 0.0, 0.0)),
+            Outline {
+                width: Val::Px(2.0),
+                offset: Default::default(),
+                color: Color::xyz(0.4811, 0.3064, 0.0253),
+            },
+            ExplanationContainer,
+            children![
+                (
+                    Text::new("HOLD/RELEASE LMB TO LAUNCH"),
+                    TextFont {
+                        font: solar_system_assets.font.clone(),
+                        font_size: 14.0,
+                        ..default()
+                    },
+                    TextColor(Color::xyz(0.4811, 0.3064, 0.0253)),
+                    ExplanationText
+                )
+            ],
+        )
+    ],
+    ));
+
 }
 
 fn update_hud(
@@ -348,4 +401,27 @@ fn update_zoom_level (
     let mut zoom_level = 1.0 / transform.scale.x;
     zoom_level = zoom_level / 4.0;
     zoom_level_text.0 = format!("{:.1}x", zoom_level);
+}
+
+fn update_explanation_text(
+    keyboard_input: Res<ButtonInput<KeyCode>>,
+    mouse_input: Res<ButtonInput<MouseButton>>,
+    mut explanation_text_query: Query<&mut Text, With<ExplanationText>>,
+    mut explanation_container_query: Query<&mut Visibility, With<ExplanationContainer>>,
+    mut hud_state: ResMut<HudState>,
+) {
+    let mut explanation_text = explanation_text_query.single_mut().unwrap();
+    let mut container_visibility = explanation_container_query.single_mut().unwrap();
+
+    if !hud_state.already_pressed_space {
+        if mouse_input.pressed(MouseButton::Left) {
+            hud_state.already_pressed_space = true;
+            explanation_text.0 = "PRESS SPACE TO SLOW DOWN".to_string();
+        }
+    } else if !hud_state.already_pressed_lmb {
+        if keyboard_input.pressed(KeyCode::Space) {
+            hud_state.already_pressed_lmb = true;
+            *container_visibility = Visibility::Hidden;
+        }
+    }
 }
