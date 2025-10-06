@@ -5,7 +5,7 @@ Create and insert sounds:
 - Launch sound
 - Music
 
-Finish/Fix Levels
+X Finish/Fix Levels
 
 Asteroids should have individual hitboxes
 
@@ -20,3 +20,5 @@ Scale Energy so that Positive Game over state is possible to reach
 X Fix Hover select
 
 Hover in tutorial
+
+X Add asteroid warning
