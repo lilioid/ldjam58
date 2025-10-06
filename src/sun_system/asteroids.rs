@@ -8,6 +8,7 @@ use rand::Rng;
 use std::f32::consts::PI;
 use std::ops::Range;
 use std::time::Duration;
+use crate::collision::HitBox;
 
 pub fn plugin(app: &mut App) {
     app.load_resource::<AsteroidAssets>();
@@ -58,11 +59,11 @@ pub struct AsteroidConfig {
 impl Default for AsteroidConfig {
     fn default() -> Self {
         Self {
-            spawn_chance: 100,
-            min_time_between: 5,
+            spawn_chance: 10,
+            min_time_between: 30,
             min_initial_wait: 1,
             asteroid_gen_range: 2..6,
-            cluster_radius: 30.0,
+            cluster_radius: 10.0,
             min_distance: 10.0,
             max_attempts: 10,
         }
@@ -153,6 +154,7 @@ fn spawn_asteroids(
                 .with_rotation(Quat::from_axis_angle(Vec3::Z, direction)),
             InheritedVisibility::default(),
             Velocity(Vec2::from_angle(direction + 0.5 * PI) * speed),
+            HitBox { radius: 15.0 },
         ))
         .id();
 
@@ -183,6 +185,7 @@ fn spawn_asteroids(
                     .with_scale(Vec3::splat(0.01))
                     .with_rotation(Quat::from_axis_angle(Vec3::X, PI)),
                 Sprite::from(assets.asteroid.clone()),
+
             ));
         }
     }
