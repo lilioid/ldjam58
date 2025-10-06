@@ -9,6 +9,7 @@ use crate::collision::FatalCollisionEvent;
 use crate::GameplaySystem;
 use crate::score::Score;
 use crate::screens::Screen;
+use crate::sun_system::SolarSystemAssets;
 
 
 #[derive(Resource, Default)]
@@ -47,9 +48,138 @@ fn is_gameover( score: Res<Score>,
 }
 
 
+#[derive(Component)]
+struct GameOverPopup;
+
 fn show_game_over(mut commands: Commands, mut score: ResMut<Score>,
-                  mut game_end: ResMut<GameEnd>) {
-    game_end.ktype = ((score.energy_stored.log10() - 6.0) / 10.0).abs();
+                  mut game_end: ResMut<GameEnd>,
+                  solar_system_assets: Res<SolarSystemAssets>) {
+    game_end.ktype = ((score.energy_rate.log10() + 9.0) / 10.0).max(0.0);
     info!("show Game Over {}", game_end.ktype);
-    //show game over screen / stats / achievements?
+
+    let text_center = Justify::Center;
+
+    // Game-Over Popup
+    commands.spawn((
+        GameOverPopup,
+        Node {
+            position_type: PositionType::Absolute,
+            width: Val::Percent(100.0),
+            height: Val::Percent(100.0),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            ..default()
+        },
+        children![
+            (
+                Node {
+                    width: Val::Px(400.0),
+                    height: Val::Px(340.0),
+                    border: UiRect::all(Val::Px(2.0)),
+                    flex_direction: FlexDirection::Column,
+                    justify_content: JustifyContent::Center,
+                    align_items: AlignItems::Center,
+                    padding: UiRect::all(Val::Px(20.0)),
+                    ..default()
+                },
+                BackgroundColor(Color::srgb(0.0, 0.0, 0.0)),
+                Outline {
+                    width: Val::Px(3.0),
+                    offset: Default::default(),
+                    color: Color::xyz(0.4811, 0.3064, 0.0253),
+                },
+                children![
+                    // Title
+                    (
+                        Text::new("GAME OVER"),
+                        Node {
+                            margin: UiRect::bottom(Val::Px(20.0)),
+                            ..default()
+                        },
+                        TextFont {
+                            font: solar_system_assets.font.clone(),
+                            font_size: 20.0,
+                            ..default()
+                        },
+                        TextColor(Color::xyz(0.4811, 0.3064, 0.0253)),
+                        TextLayout::new_with_justify(text_center),
+                    ),
+                    // Energy bar decoration
+                    (
+                        Text::new("═══════════════════════════"),
+                        Node {
+                            margin: UiRect::bottom(Val::Px(15.0)),
+                            ..default()
+                        },
+                        TextFont {
+                            font: solar_system_assets.font.clone(),
+                            font_size: 14.0,
+                            ..default()
+                        },
+                        TextColor(Color::xyz(0.4811, 0.3064, 0.0253)),
+                    ),
+                    // Energy Rate
+                    (
+                        Text::new(format!("ENERGY RATE\n{:.5} GW", score.energy_rate)),
+                        Node {
+                            margin: UiRect::bottom(Val::Px(20.0)),
+                            ..default()
+                        },
+                        TextFont {
+                            font: solar_system_assets.font.clone(),
+                            font_size: 16.0,
+                            ..default()
+                        },
+                        TextColor(Color::xyz(0.4811, 0.3064, 0.0253)),
+                        TextLayout::new_with_justify(text_center),
+                    ),
+                    // Total Energy
+                    (
+                        Text::new(format!("TOTAL ENERGY STORED\n{:.2} GWh", score.energy_stored)),
+                        Node {
+                            margin: UiRect::bottom(Val::Px(20.0)),
+                            ..default()
+                        },
+                        TextFont {
+                            font: solar_system_assets.font.clone(),
+                            font_size: 16.0,
+                            ..default()
+                        },
+                        TextColor(Color::xyz(0.4811, 0.3064, 0.0253)),
+                        TextLayout::new_with_justify(text_center),
+                    ),
+                    // Kardashev Scale
+                    (
+                        Text::new(format!("KARDASHEV \nTYPE {:.3}", game_end.ktype)),
+                        Node {
+                            margin: UiRect::bottom(Val::Px(25.0)),
+                            ..default()
+                        },
+                        TextFont {
+                            font: solar_system_assets.font.clone(),
+                            font_size: 18.0,
+                            ..default()
+                        },
+                        TextColor(Color::xyz(0.4811, 0.3064, 0.0253)),
+                        TextLayout::new_with_justify(text_center),
+                    ),
+                    // Bottom bar decoration
+                    (
+                        Text::new("═══════════════════════════"),
+                        Node {
+                            margin: UiRect::bottom(Val::Px(10.0)),
+                            ..default()
+                        },
+                        TextFont {
+                            font: solar_system_assets.font.clone(),
+                            font_size: 14.0,
+                            ..default()
+                        },
+                        TextColor(Color::xyz(0.4811, 0.3064, 0.0253)),
+                    ),
+
+                ],
+            )
+        ],
+    ));
 }

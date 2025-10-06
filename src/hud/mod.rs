@@ -57,6 +57,9 @@ struct HudState {
     already_pressed_lmb: bool,
 }
 
+#[derive(Component)]
+struct KardashevText;
+
 fn setup_hud(mut commands: Commands, solar_system_assets: Res<SolarSystemAssets>) {
     // TOP LEFT: Energy Rate and Total Energy Storage
     let container = commands.spawn((
@@ -93,7 +96,7 @@ fn setup_hud(mut commands: Commands, solar_system_assets: Res<SolarSystemAssets>
                 EnergyRateText
             ),
             (
-                Text::new("TOTAL\n0"),
+                Text::new("TOTAL:\n0"),
                 Node {
                     position_type: PositionType::Absolute,
                     top: Val::Px(65.0),
@@ -206,7 +209,6 @@ fn setup_hud(mut commands: Commands, solar_system_assets: Res<SolarSystemAssets>
     ));
 
     //MIDDLE OF SCREEN: Explaination text
-
     commands.spawn((
         Node {
             position_type: PositionType::Absolute,
@@ -248,6 +250,10 @@ fn setup_hud(mut commands: Commands, solar_system_assets: Res<SolarSystemAssets>
         )
     ],
     ));
+
+
+    //MIDDLE OF SCREEN: Game-Over Popup
+
 
 }
 
@@ -425,3 +431,4 @@ fn update_explanation_text(
         }
     }
 }
+
