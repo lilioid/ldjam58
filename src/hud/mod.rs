@@ -324,7 +324,7 @@ fn update_hud(
     if player_data.is_changed() {
         for (mut text, _) in energy_rate_query.iter_mut() {
             text.0 = format!(
-                "ENERGY RATE\n{} {:.5}PW",
+                "ENERGY RATE\n{} {:.5}YW",
                 get_ascii_bar(player_data.energy_rate.clamp(0.0, 1.0)),
                 player_data.energy_rate
             )
@@ -332,7 +332,7 @@ fn update_hud(
 
         for (mut text, _) in energy_storage_query.iter_mut() {
             text.0 = format!(
-                "TOTAL:\n{} {:.2}PWh",
+                "TOTAL:\n{} {:.2}YWh",
                 get_ascii_bar((player_data.energy_stored / 10.0).clamp(0.0, 1.0)),
                 player_data.energy_stored
             )
@@ -496,7 +496,7 @@ fn update_debris_warning(
     // Update timer and hide when finished
     if *visibility == Visibility::Visible {
         warning.timer.tick(time.delta());
-        if warning.timer.finished() {
+        if warning.timer.is_finished() {
             *visibility = Visibility::Hidden;
         }
     }

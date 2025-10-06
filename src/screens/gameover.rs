@@ -19,7 +19,7 @@ pub struct GameEnd{
 }
 
 pub(super) fn plugin(app: &mut App) {
-    app.insert_resource(GameEnd{game_end_time:600.0, ktype: 0.0});
+    app.insert_resource(GameEnd{game_end_time:6.0, ktype: 0.0});
     app.add_systems(Update, enter_gameover_screen.run_if(in_state(Screen::Gameplay).and(is_gameover)));
     app.add_systems(OnEnter(Screen::Gameover), show_game_over);
 }
@@ -58,7 +58,10 @@ fn show_game_over(mut commands: Commands, mut score: ResMut<Score>,
     info!("show Game Over {}", game_end.ktype);
 
     let text_center = Justify::Center;
-
+    let mut better_earth = "";
+    if game_end.ktype > 1.46{
+        better_earth="You generate more Energy than 2 Earths!";
+    }
     // Game-Over Popup
     commands.spawn((
         GameOverPopup,
@@ -75,7 +78,7 @@ fn show_game_over(mut commands: Commands, mut score: ResMut<Score>,
             (
                 Node {
                     width: Val::Px(400.0),
-                    height: Val::Px(340.0),
+                    height: Val::Px(380.0),
                     border: UiRect::all(Val::Px(2.0)),
                     flex_direction: FlexDirection::Column,
                     justify_content: JustifyContent::Center,
@@ -121,7 +124,7 @@ fn show_game_over(mut commands: Commands, mut score: ResMut<Score>,
                     ),
                     // Energy Rate
                     (
-                        Text::new(format!("ENERGY RATE\n{:.5} GW", score.energy_rate)),
+                        Text::new(format!("ENERGY RATE\n{:.5} YT", score.energy_rate)),
                         Node {
                             margin: UiRect::bottom(Val::Px(20.0)),
                             ..default()
@@ -136,7 +139,7 @@ fn show_game_over(mut commands: Commands, mut score: ResMut<Score>,
                     ),
                     // Total Energy
                     (
-                        Text::new(format!("TOTAL ENERGY STORED\n{:.2} GWh", score.energy_stored)),
+                        Text::new(format!("TOTAL ENERGY STORED\n{:.2} YTh", score.energy_stored)),
                         Node {
                             margin: UiRect::bottom(Val::Px(20.0)),
                             ..default()
@@ -151,7 +154,7 @@ fn show_game_over(mut commands: Commands, mut score: ResMut<Score>,
                     ),
                     // Kardashev Scale
                     (
-                        Text::new(format!("KARDASHEV \nTYPE {:.3}", game_end.ktype)),
+                        Text::new(format!("Kardashev \nTYPE {:.3}\n {} ", game_end.ktype,better_earth)),
                         Node {
                             margin: UiRect::bottom(Val::Px(25.0)),
                             ..default()
@@ -159,6 +162,18 @@ fn show_game_over(mut commands: Commands, mut score: ResMut<Score>,
                         TextFont {
                             font: solar_system_assets.font.clone(),
                             font_size: 18.0,
+                            ..default()
+                        },
+                        TextColor(Color::xyz(0.4811, 0.3064, 0.0253)),
+                        TextLayout::new_with_justify(text_center),
+                    ),
+                    // Total Energy
+                    (
+                        Text::new(format!("A Type 2 Civilization harnesses all power of a star")),
+
+                        TextFont {
+                            font: solar_system_assets.font.clone(),
+                            font_size: 16.0,
                             ..default()
                         },
                         TextColor(Color::xyz(0.4811, 0.3064, 0.0253)),
