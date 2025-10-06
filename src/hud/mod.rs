@@ -146,6 +146,7 @@ fn setup_hud(mut commands: Commands, solar_system_assets: Res<SolarSystemAssets>
                 },
                 TextFont {
                     font: solar_system_assets.font.clone(),
+                    font_size: 25.0,
                     ..default()
                 },
                 TextColor(Color::xyz(0.4811, 0.3064, 0.0253)),
@@ -274,7 +275,7 @@ fn update_launch_pad_ui(
 }
 
 fn get_vertical_ascii_bar(percentage: f32) -> String {
-    let total_bars = 19;
+    let total_bars = 15;
     let filled_bars = (percentage * total_bars as f32).round() as usize;
 
     let mut result = String::from("╦\n");
