@@ -42,6 +42,8 @@ struct LaunchBarText;
 #[derive(Component)]
 struct ZoomLevelText;
 
+
+
 #[derive(Resource)]
 struct HudState {
     just_destroyed: Option<Entity>,
@@ -252,6 +254,8 @@ fn handle_fatal_collision_event_for_hud(
         //already showing crash indicator for the other entity; skipping to avoid overlapping indicators
         return;
     }
+
+
     commands.spawn((
         Name::new("crash"),
         Transform::from_translation(entity_transform.translation).with_scale(Vec3::splat(0.01)),
