@@ -62,6 +62,7 @@ fn show_game_over(mut commands: Commands, mut score: ResMut<Score>,
     // Game-Over Popup
     commands.spawn((
         GameOverPopup,
+        Pickable::IGNORE,
         Node {
             position_type: PositionType::Absolute,
             width: Val::Percent(100.0),

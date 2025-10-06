@@ -1,4 +1,4 @@
-Design and Display Game-Over Screen
+X Design and Display Game-Over Screen
 
 Create and insert sounds:
 - Zoom sound
@@ -16,3 +16,7 @@ X Indicate that spacebar can be pressed to slow down
 Scale Energy so that Positive Game over state is possible to reach
 
 # if possible trails
+
+X Fix Hover select
+
+Hover in tutorial

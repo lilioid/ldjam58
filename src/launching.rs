@@ -152,6 +152,7 @@ let collector_id = commands.spawn((
         TextColor(Color::from(GREEN)),
         ChildOf(collector_id),
         EnergyRateLabel,
+        Pickable::IGNORE,
     ));
 
     commands.spawn((
@@ -165,6 +166,7 @@ let collector_id = commands.spawn((
         ChildOf(collector_id),
         FuelLabel,
         Visibility::Visible,
+        Pickable::IGNORE,
     ));
 
     launch_state.launched_at_time = None;
@@ -176,6 +178,7 @@ fn on_hover_collector_over(
     query: Query<Entity, (With<NavigationInstruments>, With<Thruster>)>,
 ) {
 
+    println!("hover over collector {:?}", ev.entity);
     commands.entity(ev.entity).insert(NavigationInstruments);
     commands.entity(ev.entity).insert(Thruster::new(ThrusterDirection::Retrograde, 2.0));
 

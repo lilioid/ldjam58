@@ -218,6 +218,7 @@ fn setup_hud(mut commands: Commands, solar_system_assets: Res<SolarSystemAssets>
             align_items: AlignItems::Center,
             ..default()
         },
+        Pickable::IGNORE,
         children![
         (
             Node {
@@ -228,6 +229,7 @@ fn setup_hud(mut commands: Commands, solar_system_assets: Res<SolarSystemAssets>
                 align_items: AlignItems::Center,
                 ..default()
             },
+            Pickable::IGNORE,
             BackgroundColor(Color::srgb(0.0, 0.0, 0.0)),
             Outline {
                 width: Val::Px(2.0),
@@ -244,7 +246,8 @@ fn setup_hud(mut commands: Commands, solar_system_assets: Res<SolarSystemAssets>
                         ..default()
                     },
                     TextColor(Color::xyz(0.4811, 0.3064, 0.0253)),
-                    ExplanationText
+                    ExplanationText,
+                    Pickable::IGNORE,
                 )
             ],
         )
