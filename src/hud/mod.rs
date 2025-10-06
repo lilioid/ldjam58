@@ -14,7 +14,7 @@ impl Plugin for HudPlugin {
         app.add_systems(OnEnter(Screen::Gameplay), setup_hud)
             .add_systems(
                 Update,
-                (update_hud, update_crash_indicators, update_launch_pad_ui).in_set(GameplaySystem),
+                (update_hud, update_crash_indicators, update_launch_pad_ui, update_zoom_level).in_set(GameplaySystem),
             );
         app.add_observer(handle_fatal_collision_event_for_hud);
         app.insert_resource(HudState {
@@ -38,6 +38,9 @@ struct CrashIndicator {
 
 #[derive(Component)]
 struct LaunchBarText;
+
+#[derive(Component)]
+struct ZoomLevelText;
 
 #[derive(Resource)]
 struct HudState {
@@ -151,6 +154,44 @@ fn setup_hud(mut commands: Commands, solar_system_assets: Res<SolarSystemAssets>
                 },
                 TextColor(Color::xyz(0.4811, 0.3064, 0.0253)),
             ),
+        ],
+    ));
+
+    //BOTTOM LEFT: ZOOM LEVEL INDICATOR
+    commands.spawn((
+        Node {
+            position_type: PositionType::Absolute,
+            bottom: Val::Px(15.0),
+            left: Val::Px(15.0),
+            width: Val::Px(80.0),
+            height: Val::Px(50.0),
+            border: UiRect::all(Val::Px(BORDER)),
+
+            ..default()
+        },
+        BackgroundColor(Color::srgb(0.0, 0.0, 0.0)),
+        Outline {
+            width: Val::Px(2.0),
+            offset: Default::default(),
+            color: Color::xyz(0.4811, 0.3064, 0.0253),
+        },
+        children![
+            (
+                Text::new("1.0x"),
+                ZoomLevelText,
+                Node {
+                    position_type: PositionType::Relative,
+                    top: Val::Px(10.0),
+                    left: Val::Px(15.0),
+                    justify_content: JustifyContent::Center,
+                    ..default()
+                },
+                TextFont {
+                    font: solar_system_assets.font.clone(),
+                    ..default()
+                },
+                TextColor(Color::xyz(0.4811, 0.3064, 0.0253)),
+            )
         ],
     ));
 }
@@ -291,4 +332,16 @@ fn get_vertical_ascii_bar(percentage: f32) -> String {
 
     result.push('╩');
     result
+}
+
+fn update_zoom_level (
+    camera_query: Query<(&Camera, &Transform)>,
+    mut zoom_level_query: Query<&mut Text, With<ZoomLevelText>>,
+) {
+    let (_, transform) = camera_query.single().unwrap();
+    let mut zoom_level_text = zoom_level_query.single_mut().unwrap();
+
+    let mut zoom_level = 1.0 / transform.scale.x;
+    zoom_level = zoom_level / 4.0;
+    zoom_level_text.0 = format!("{:.1}x", zoom_level);
 }
