@@ -4,6 +4,7 @@ use crate::sun_system::{Level, Satellite, SolarSystemAssets};
 use crate::{AppSystems, GameplaySystem};
 use bevy::color::palettes::basic::BLUE;
 use bevy::prelude::*;
+use std::collections::HashSet;
 
 pub(super) fn plugin(app: &mut App) {
     app.add_systems(
@@ -60,11 +61,17 @@ fn check_for_collisions(
     mut commands: Commands,
     hitboxes: Query<(Entity, &Transform, &HitBox, Has<Attractor>, Has<Attractee>, &Level)>,
 ) {
+    // Track entities we already decided to destroy this system run to avoid duplicate events
+    let mut destroyed_in_this_system: HashSet<Entity> = HashSet::new();
     for (entity, entity_transform, hitbox1, isAttractor, isAttractee, level1) in hitboxes.iter() {
         for (entity_check, check_transform, hitbox2, isAttractor2, isAttractee2, level2) in hitboxes.iter()
         {
             if (entity == entity_check) {
                 // no need to check collisions with self
+                continue;
+            }
+            // Skip pairs where either entity is already scheduled to be destroyed in this pass
+            if destroyed_in_this_system.contains(&entity) || destroyed_in_this_system.contains(&entity_check) {
                 continue;
             }
             let distance = entity_transform
@@ -76,20 +83,26 @@ fn check_for_collisions(
                 if(isAttractor){
                     info!("crash sun case");
                     // first sun, sun has level 0
-                    commands.trigger(FatalCollisionEvent {
-                        destroyed: entity_check,
-                        other: entity,
-                    });
+                    if !destroyed_in_this_system.contains(&entity_check) {
+                        commands.trigger(FatalCollisionEvent {
+                            destroyed: entity_check,
+                            other: entity,
+                        });
+                        destroyed_in_this_system.insert(entity_check);
+                    }
                 } else if (isAttractor2) {
                 } else {
                     info!("crash Satellites");
 
                     // satellite 1
                     if(level1.level == 1. && isAttractor2) {
-                        commands.trigger(FatalCollisionEvent {
-                            destroyed: entity,
-                            other: entity_check,
-                        });
+                        if !destroyed_in_this_system.contains(&entity) {
+                            commands.trigger(FatalCollisionEvent {
+                                destroyed: entity,
+                                other: entity_check,
+                            });
+                            destroyed_in_this_system.insert(entity);
+                        }
                     }else {
                         commands.trigger(DemoteCollisionEvent {
                             demoted: entity,
@@ -98,10 +111,13 @@ fn check_for_collisions(
                     }
                     // satellite 2
                     if level2.level == 1. && isAttractor2 {
-                        commands.trigger(FatalCollisionEvent {
-                            destroyed: entity_check,
-                            other: entity,
-                        });
+                        if !destroyed_in_this_system.contains(&entity_check) {
+                            commands.trigger(FatalCollisionEvent {
+                                destroyed: entity_check,
+                                other: entity,
+                            });
+                            destroyed_in_this_system.insert(entity_check);
+                        }
                     }else {
                         commands.trigger(DemoteCollisionEvent {
                             demoted: entity_check,
@@ -118,16 +134,20 @@ fn check_for_collisions(
 fn handle_demote_collision_event(event: On<DemoteCollisionEvent>, mut commands: Commands, mut collector_query: Query<(Entity, &mut Level, &mut Sprite),  (With<Attractee>)>, assets: Res<SolarSystemAssets>) {
     let demoted_entity= commands
         .get_entity(event.demoted)
-        .expect("Wanted to demote entity after fatal collision but entity does not exist!") ;
+        .expect("Wanted to demote entity after collision but entity does not exist!") ;
     for (entity, mut level, mut sprite) in collector_query.iter_mut() {
         if demoted_entity.id() == entity {
-            level.level -= 1.;
+            if (level.level > 1.) {
+                level.level -= 1.;
+            }
             if level.level == 1. {
                 //frm 2 to 1
                 *sprite = Sprite::from(assets.collector.clone());
-            } else{
+            } else if(level.level == 2.){
                 //reduce from lv3 to 2
                *sprite =  Sprite::from(assets.collector2.clone());
+            } else{
+                *sprite =  Sprite::from(assets.collector3.clone());
             }
         }
     }
