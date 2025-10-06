@@ -41,7 +41,7 @@ pub(super) fn plugin(app: &mut App) {
             .run_if(in_state(Screen::Gameplay))
             .in_set(AppSystems::Update),
     );
-    
+
     app.add_systems(Update, thruster_use_fuel.in_set(GameplaySystem));
 }
 
@@ -53,6 +53,12 @@ pub struct SolarSystemAssets {
 
     #[dependency]
     pub(crate) collector: Handle<Image>,
+
+    #[dependency]
+    pub(crate) collector2: Handle<Image>,
+
+    #[dependency]
+    pub(crate) collector3: Handle<Image>,
 
     #[dependency]
     grid: Handle<Image>,
@@ -97,7 +103,9 @@ impl FromWorld for SolarSystemAssets {
             sun: assets.load("sun.png"),
             crash: assets.load("crash.png"),
             grid: assets.load("retro_grid.png"),
-            collector: assets.load("satellite.png"),
+            collector: assets.load("satellite_mk1.png"),
+            collector2: assets.load("satellite_mk2.png"),
+            collector3: assets.load("satellite_mk3.png"),
             bg: assets.load("retro_grid_bg.png"),
             font: assets.load("fonts/lucon.ttf"),
             crash_sound: assets.load("sounds/collision.wav"),
@@ -111,6 +119,7 @@ pub fn init_sun_system(mut commands: Commands, solar_system_assets: Res<SolarSys
     info!("Adding sun");
     commands.spawn((
         Attractor,
+        Level { level: 0. }, // needed for easy collisions
         HitBox {
             radius: 20.0
         },
