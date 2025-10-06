@@ -19,7 +19,7 @@ pub struct GameEnd{
 }
 
 pub(super) fn plugin(app: &mut App) {
-    app.insert_resource(GameEnd{game_end_time:6.0, ktype: 0.0});
+    app.insert_resource(GameEnd{game_end_time:600.0, ktype: 0.0});
     app.add_systems(Update, enter_gameover_screen.run_if(in_state(Screen::Gameplay).and(is_gameover)));
     app.add_systems(OnEnter(Screen::Gameover), show_game_over);
 }
