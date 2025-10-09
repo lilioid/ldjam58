@@ -51,7 +51,7 @@ fn update_score(
         if distance > 0.0 {
             let mut individual_rate = 2.0 / distance;
             collector_stats.energy_rate = individual_rate;
-            individual_rate = individual_rate*level.level;
+            individual_rate = individual_rate*level.level*200.;
             instant_rate += individual_rate;
 
             for (parent, mut text) in label_query.iter_mut() {

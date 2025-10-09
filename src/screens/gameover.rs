@@ -15,7 +15,7 @@ use crate::sun_system::SolarSystemAssets;
 #[derive(Resource, Default)]
 pub struct GameEnd{
     pub game_end_time: f32,
-    pub ktype: f32
+    pub ktype: f64
 }
 
 pub(super) fn plugin(app: &mut App) {
@@ -40,8 +40,7 @@ fn is_gameover( score: Res<Score>,
                       time: Res<Time>,
                       game_end: Res<GameEnd>) -> bool {
     // 400 Yottawatt are 4 x 10^26, Kardashev type two,2.0 energy threshold
-    // Start at 10 petawatt Kardashev scale 1.0
-   if( time.elapsed_secs() - game_end.game_end_time > 0. || score.energy_stored > 400.){
+   if( time.elapsed_secs() - game_end.game_end_time > 0. || score.energy_rate >= 400.){
        return true;
    }
     return false;
@@ -54,7 +53,9 @@ struct GameOverPopup;
 fn show_game_over(mut commands: Commands, mut score: ResMut<Score>,
                   mut game_end: ResMut<GameEnd>,
                   solar_system_assets: Res<SolarSystemAssets>) {
-    game_end.ktype = ((score.energy_rate.log10() + 9.0) / 10.0).max(0.0);
+    if(score.energy_rate >= 400.){ score.energy_rate=400.;}
+    let toYotta: f64=(score.energy_rate/100.) as f64* 1e24_f64; // multiplied by yotta
+    game_end.ktype = ((toYotta.log10() - 6.0) / 10.0).abs();//((score.energy_rate.log10() + 9.0) / 10.0).max(0.0);
     info!("show Game Over {}", game_end.ktype);
 
     let text_center = Justify::Center;
@@ -124,7 +125,7 @@ fn show_game_over(mut commands: Commands, mut score: ResMut<Score>,
                     ),
                     // Energy Rate
                     (
-                        Text::new(format!("ENERGY RATE\n{:.5} YT", score.energy_rate)),
+                        Text::new(format!("ENERGY RATE\n{:.3} YT", score.energy_rate)),
                         Node {
                             margin: UiRect::bottom(Val::Px(20.0)),
                             ..default()

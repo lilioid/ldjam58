@@ -130,7 +130,7 @@ let collector_id = commands.spawn((
         Sprite::from(sprite),
         TextColor(Color::from(GREEN)),
         Thruster::new(ThrusterDirection::Retrograde, 2.0),
-        HitBox { radius: 5.0 },
+        HitBox { radius: 4.0 },
         NavigationInstruments,
         Satellite,
         CollectorStats {

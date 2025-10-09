@@ -156,11 +156,11 @@ fn spawn_asteroids(
         .spawn((
             AsteroidSwarm,
             Level{level:-1.},
-            Transform::from_translation(Vec3::new(0.0, -75.0, 0.0))
+            Transform::from_translation(Vec3::new(-50.0, -150.0, 0.0))
                 .with_rotation(Quat::from_axis_angle(Vec3::Z, direction)),
             InheritedVisibility::default(),
             Velocity(Vec2::from_angle(direction + 0.5 * PI) * speed),
-            HitBox { radius: 15.0 },
+            HitBox { radius: 14.0 },
         ))
         .id();
 
