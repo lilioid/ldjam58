@@ -14,6 +14,7 @@ mod score;
 mod screens;
 mod sun_system;
 mod sound;
+mod trails;
 
 use std::ops::{Deref, DerefMut};
 use crate::screens::Screen;
@@ -72,8 +73,8 @@ impl Plugin for AppPlugin {
             score::plugin,
             hud::HudPlugin,
             sound::SoundPlugin,
+            trails::TrailsPlugin,
         ));
-
         // Tell bevy that our AppSystems should always be executed in the below order
         app.configure_sets(
             Update,
