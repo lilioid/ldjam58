@@ -15,7 +15,7 @@ use crate::sun_system::SolarSystemAssets;
 #[derive(Resource, Default)]
 pub struct GameEnd{
     pub game_end_time: f32,
-    pub ktype: f64
+    pub ktype: f32
 }
 
 pub(super) fn plugin(app: &mut App) {
@@ -54,14 +54,19 @@ fn show_game_over(mut commands: Commands, mut score: ResMut<Score>,
                   mut game_end: ResMut<GameEnd>,
                   solar_system_assets: Res<SolarSystemAssets>) {
     if(score.energy_rate >= 400.){ score.energy_rate=400.;}
-    let toYotta: f64=(score.energy_rate/100.) as f64* 1e24_f64; // multiplied by yotta
-    game_end.ktype = ((toYotta.log10() - 6.0) / 10.0).abs();//((score.energy_rate.log10() + 9.0) / 10.0).max(0.0);
+    //let toYotta: f64=(score.energy_rate/100.) as f64* 1e24_f64; // multiplied by yotta
+
+    game_end.ktype = (1.0 + (score.energy_rate - 1.0) / 399.0).clamp(1.0, 2.0);//((toYotta.log10() - 6.0) / 10.0).abs();//((score.energy_rate.log10() + 9.0) / 10.0).max(0.0);
     info!("show Game Over {}", game_end.ktype);
 
     let text_center = Justify::Center;
     let mut better_earth = "";
     if game_end.ktype > 1.46{
         better_earth="You generate more Energy than 2 Earths!";
+    }
+    let mut game_end_string = "GAME OVER";
+    if(score.energy_rate >= 400.){
+        game_end_string = "YOU WON!";
     }
     // Game-Over Popup
     commands.spawn((
@@ -96,7 +101,7 @@ fn show_game_over(mut commands: Commands, mut score: ResMut<Score>,
                 children![
                     // Title
                     (
-                        Text::new("GAME OVER"),
+                        Text::new(game_end_string),
                         Node {
                             margin: UiRect::bottom(Val::Px(20.0)),
                             ..default()

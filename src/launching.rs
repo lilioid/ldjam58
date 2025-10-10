@@ -73,12 +73,7 @@ fn start_new_launch(
     time: Res<Time>,
     mut score: ResMut<Score>,
 ) {
-    info!("Pay energy");
-    if (score.energy_stored >= 0.2) {
-        score.energy_stored -= 0.2f32;
-    } else {
-        return;
-    }
+
     let launch_pad_transform = launch_pad_query.single().unwrap();
     let launch_position = launch_pad_transform.translation;
 
@@ -107,17 +102,22 @@ fn start_new_launch(
     force_multiplier = force_multiplier * 10.0;
     let sprite ;
     let lvl ;
-    if (score.energy_stored > 2. && score.energy_stored <5.){
+    if (score.energy_stored > 10000. && score.energy_stored <20000.){
         lvl=2.;
         sprite = solar_system_assets.collector2.clone();
-    }else if (score.energy_stored >5.){
+    }else if (score.energy_stored >20000.){
         lvl=3.;
         sprite = solar_system_assets.collector3.clone();
     }else{
         lvl=1.;
-        sprite= solar_system_assets.collector.clone()
+        sprite= solar_system_assets.collector.clone();        
     }
-
+    info!("Pay energy");
+    if (score.energy_stored >= 0.2) {
+        score.energy_stored -= 0.2f32*lvl;
+    } else {
+        return;
+    }
 let collector_id = commands.spawn((
         Fuel { amount: 1.5 },
         Level { level: lvl },
