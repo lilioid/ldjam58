@@ -3,7 +3,7 @@ use crate::collision::FatalCollisionEvent;
 use crate::launching::{LaunchPad, LaunchState};
 use crate::score::Score;
 use crate::screens::Screen;
-use crate::sun_system::SolarSystemAssets;
+use crate::sun_system::{SolarSystemAssets, Sun};
 use crate::sun_system::asteroids::AsteroidSwarmSpawned;
 use bevy::prelude::*;
 use bevy::ui_render::stack_z_offsets::BORDER;
@@ -358,11 +358,17 @@ fn handle_fatal_collision_event_for_hud(
     mut commands: Commands,
     entity_query: Query<(&Transform, Entity)>,
     solar_system_assets: Res<SolarSystemAssets>,
+    sun_query: Query<(), With<Sun>>,
     mut just_destroyed: ResMut<HudState>,
 ) {
     let (entity_transform, _) = entity_query
         .get(event.destroyed)
         .expect("Wanted to get transform of destroyed entity but entity does not exist!");
+
+    // Skip HUD X marker when the other collider is the sun
+    if sun_query.get(event.other).is_ok() {
+        return;
+    }
 
     if just_destroyed.just_destroyed == Some(event.other) {
         //already showing crash indicator for the other entity; skipping to avoid overlapping indicators
