@@ -15,6 +15,7 @@ mod screens;
 mod sun_system;
 mod sound;
 mod trails;
+mod effects;
 
 use std::ops::{Deref, DerefMut};
 use crate::screens::Screen;
@@ -68,6 +69,7 @@ impl Plugin for AppPlugin {
             dev_tools::plugin,
             screens::plugin,
             sun_system::plugin,
+            effects::plugin,
             launching::plugin,
             collision::plugin,
             score::plugin,

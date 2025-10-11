@@ -2,7 +2,7 @@ use bevy::audio::Volume;
 use bevy::prelude::*;
 use crate::collision::FatalCollisionEvent;
 use crate::screens::Screen;
-use crate::sun_system::SolarSystemAssets;
+use crate::sun_system::{SolarSystemAssets, Sun};
 use crate::sun_system::asteroids::AsteroidSwarm;
 
 pub(crate) struct SoundPlugin;
@@ -27,11 +27,16 @@ fn handle_fatal_collision_event_for_sound(
     mut commands: Commands,
     solar_system_assets: Res<SolarSystemAssets>,
     asteroid_swarm_query: Query<Entity, With<AsteroidSwarm>>,
+    sun_query: Query<(), With<Sun>>,
 ) {
     if let Ok(asteroid_swarm_entity) = asteroid_swarm_query.single() {
         if event.destroyed == asteroid_swarm_entity {
             return;
         }
+    }
+    // Mute crash SFX when swallowed by the sun
+    if sun_query.get(event.other).is_ok() {
+        return;
     }
     commands.spawn((
         AudioPlayer::new(solar_system_assets.crash_sound.clone()),
