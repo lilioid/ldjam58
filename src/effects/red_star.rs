@@ -1,8 +1,8 @@
 use bevy::prelude::*;
 use crate::GameplaySystem;
-use crate::collision::{FatalCollisionEvent, HitBox};
+use crate::collision::{ HitBox};
 use crate::score::Score;
-use crate::sun_system::{SolarSystemAssets, Sun, Satellite};
+use crate::sun_system::{SolarSystemAssets, Sun};
 use super::SunFlameConfig;
 
 #[derive(Resource, Default)]
@@ -21,7 +21,6 @@ fn red_star_conversion(
     assets: Res<SolarSystemAssets>,
     mut sun_q: Query<(Entity, &mut Transform, &mut HitBox, &mut Sprite), With<Sun>>, 
     mut cfg: ResMut<SunFlameConfig>,
-    mut commands: Commands,
 ) {
     if state.converted { return; }
     // Treat reaching 10k energy as reaching level 2

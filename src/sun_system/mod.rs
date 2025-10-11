@@ -52,6 +52,9 @@ pub struct SolarSystemAssets {
     sun: Handle<Image>,
 
     #[dependency]
+    pub(crate) redsun: Handle<Image>,
+
+    #[dependency]
     pub(crate) collector: Handle<Image>,
 
     #[dependency]
@@ -101,6 +104,7 @@ impl FromWorld for SolarSystemAssets {
         let assets = world.resource::<AssetServer>();
         Self {
             sun: assets.load("sun.png"),
+            redsun: assets.load("redsun.png"),
             crash: assets.load("crash.png"),
             grid: assets.load("retro_grid.png"),
             collector: assets.load("satellite_mk1.png"),
