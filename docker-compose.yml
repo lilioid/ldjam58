@@ -1,0 +1,19 @@
+services:
+  bevy-build:
+    image: docker.io/rust
+    stdin_open: true
+    volumes:
+      - ldjam58-cargo-cache:/usr/local/cargo
+      - ${D}:/usr/local/src/ldjam58
+    working_dir: /usr/local/src/ldjam58
+    command: |
+      sh -c "
+        rustup target add wasm32-unknown-unknown &&
+        cargo install wasm-bindgen-cli &&
+        cargo install wasm-opt &&
+        cargo install --git https://github.com/TheBevyFlock/bevy_cli --locked bevy_cli &&
+        bevy build --release web --bundle -v
+      "
+
+volumes:
+  ldjam58-cargo-cache:
