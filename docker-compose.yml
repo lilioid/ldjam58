@@ -4,7 +4,7 @@ services:
     stdin_open: true
     volumes:
       - ldjam58-cargo-cache:/usr/local/cargo
-      - ${D}:/usr/local/src/ldjam58
+      - .:/usr/local/src/ldjam58  # Mount current directory
     working_dir: /usr/local/src/ldjam58
     command: |
       sh -c "
