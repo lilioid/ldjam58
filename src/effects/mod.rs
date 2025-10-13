@@ -3,6 +3,7 @@ use crate::GameplaySystem;
 use crate::sun_system::{Sun, Satellite, Level};
 use crate::collision::{FatalCollisionEvent, HitBox};
 mod red_star;
+mod gravity_viz;
 
 #[derive(Resource)]
 struct SunFlameConfig {
@@ -35,6 +36,7 @@ pub(super) fn plugin(app: &mut App) {
     app.add_observer(on_fatal_collision_swallow);
     app.add_systems(Update, (update_and_render_swallow_fx).in_set(GameplaySystem));
     red_star::plugin(app);
+    gravity_viz::plugin(app);
 }
 
 fn draw_sun_flames(
