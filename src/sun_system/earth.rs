@@ -38,6 +38,7 @@ fn init_earth(mut commands: Commands, assets: Res<EarthAssets>) {
 
     commands.spawn((
         Name::new("Earth"),
+        DespawnOnExit(crate::screens::Screen::Gameplay),
         Earth,
         Transform::from_translation(Vec3::new(100.0, 0.0, 0.0)).with_scale(Vec3::splat(0.004)),
         Sprite::from(assets.earth.clone()),
@@ -53,8 +54,8 @@ fn move_earth_around_sun(
     mut launch_pad_query: Query<&mut Transform, (With<LaunchPad>, Without<Earth>, Without<Sun>)>,
     time: Res<Time>
 ) {
-    let sun_transform = sun_query.single();
-    let sun_position = sun_transform.unwrap().translation;
+    let Some(sun_transform) = sun_query.iter().next() else { return; };
+    let sun_position = sun_transform.translation;
 
     for mut earth_transform in earth_query.iter_mut() {
         let angle_speed = 0.1;
@@ -64,9 +65,10 @@ fn move_earth_around_sun(
         let new_x = sun_position.x + radius * angle.cos();
         let new_y = sun_position.y + radius * angle.sin();
         earth_transform.translation = Vec3::new(new_x, new_y, earth_transform.translation.z);
-        // FUCK, I DONT KNOW WHY BUT TRANSFORM PROPAGATION IS BROKEN :(
-        let mut launch_pad_transform = launch_pad_query.single_mut().unwrap();
-        launch_pad_transform.translation = earth_transform.translation;
+        // Update launchpad transform if available (skip if multiple)
+        if let Some(mut launch_pad_transform) = launch_pad_query.iter_mut().next() {
+            launch_pad_transform.translation = earth_transform.translation;
+        }
     }
 }
 
@@ -76,9 +78,9 @@ fn draw_arrow(
     camera_query: Query<(&Camera, &GlobalTransform)>,
     windows: Query<&Window>,
 ) {
-    let earth_transform = earth_query.single().unwrap();
-    let (camera, camera_transform) = camera_query.single().unwrap();
-    let window = windows.iter().next().unwrap();
+    let Some(earth_transform) = earth_query.iter().next() else { return; };
+    let Some((camera, camera_transform)) = camera_query.iter().next() else { return; };
+    let Some(window) = windows.iter().next() else { return; };
 
     let Some(cursor_position) = window.cursor_position() else {
         return;

@@ -40,8 +40,8 @@ fn update_score(
 
     time: Res<Time>,
 ) {
-    let sun_transform = sun_query.single();
-    let sun_position = sun_transform.unwrap().translation;
+    let Some(sun_transform) = sun_query.iter().next() else { return; };
+    let sun_position = sun_transform.translation;
 
     let current_time = time.elapsed_secs();
     let mut instant_rate = 0.01;

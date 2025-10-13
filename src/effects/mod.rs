@@ -45,7 +45,7 @@ fn draw_sun_flames(
     time: Res<Time>,
     cfg: Res<SunFlameConfig>,
 ) {
-    let Ok((gt, hb)) = sun.single() else { return; };
+    let Some((gt, hb)) = sun.iter().next() else { return; };
     let center = gt.translation().xy();
     let iso = Isometry2d::from_translation(center);
 
@@ -124,7 +124,7 @@ fn update_and_render_swallow_fx(
     q_sun_t: Query<(&GlobalTransform, &HitBox), With<Sun>>,
     time: Res<Time>,
 ) {
-    let Ok((gt, hb)) = q_sun_t.single() else { return; };
+    let Some((gt, hb)) = q_sun_t.iter().next() else { return; };
     let center = gt.translation().xy();
     let sun_r = hb.radius;
     let effect_scale = sun_r / 20.0; // 20.0 was the original base

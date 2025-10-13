@@ -66,7 +66,7 @@ pub fn make_launchpad() -> impl Bundle {
 fn start_new_launch(
     mut commands: Commands,
     launch_pad_query: Query<&Transform, With<LaunchPad>>,
-    window: Single<&Window, With<PrimaryWindow>>,
+    window_q: Query<&Window, With<PrimaryWindow>>,
     camera_query: Query<(&Camera, &GlobalTransform)>,
     solar_system_assets: Res<SolarSystemAssets>,
     mut launch_state: ResMut<LaunchState>,
@@ -74,11 +74,12 @@ fn start_new_launch(
     mut score: ResMut<Score>,
 ) {
 
-    let launch_pad_transform = launch_pad_query.single().unwrap();
+    let Some(launch_pad_transform) = launch_pad_query.iter().next() else { return; };
     let launch_position = launch_pad_transform.translation;
 
-    let (camera, camera_transform) = camera_query.single().unwrap();
+    let Some((camera, camera_transform)) = camera_query.iter().next() else { return; };
 
+    let Some(window) = window_q.iter().next() else { return; };
     let launch_direction = if let Some(cursor_pos) = window.cursor_position() {
         if let Ok(world_pos) = camera.viewport_to_world_2d(camera_transform, cursor_pos) {
             (world_pos.extend(0.0) - launch_position).normalize()

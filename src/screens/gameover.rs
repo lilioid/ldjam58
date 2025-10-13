@@ -21,10 +21,11 @@ pub struct GameEnd{
 }
 
 pub(super) fn plugin(app: &mut App) {
-    app.insert_resource(GameEnd{game_end_time:600.0, ktype: 0.0, enabled: false});
+    app.insert_resource(GameEnd{game_end_time:6.0, ktype: 0.0, enabled: false});
     app.add_systems(Update, enter_gameover_screen.run_if(in_state(Screen::Gameplay).and(is_gameover)));
     app.add_systems(OnEnter(Screen::Gameover), show_game_over);
     app.add_systems(OnEnter(Screen::Gameplay), reset_game_end_timer);
+    app.add_systems(Update, handle_restart_button.run_if(in_state(Screen::Gameover)));
 }
 
 
@@ -53,6 +54,9 @@ fn is_gameover( score: Res<Score>,
 #[derive(Component)]
 struct GameOverPopup;
 
+#[derive(Component)]
+struct RestartButton;
+
 fn show_game_over(mut commands: Commands, mut score: ResMut<Score>,
                   mut game_end: ResMut<GameEnd>,
                   solar_system_assets: Res<SolarSystemAssets>) {
@@ -75,6 +79,7 @@ fn show_game_over(mut commands: Commands, mut score: ResMut<Score>,
     }
     // Game-Over Popup
     commands.spawn((
+        DespawnOnExit(Screen::Gameover),
         GameOverPopup,
         Pickable::IGNORE,
         Node {
@@ -85,6 +90,7 @@ fn show_game_over(mut commands: Commands, mut score: ResMut<Score>,
             align_items: AlignItems::Center,
             ..default()
         },
+        Visibility::Visible,
         children![
             (
                 Node {
@@ -204,6 +210,37 @@ fn show_game_over(mut commands: Commands, mut score: ResMut<Score>,
                         },
                         TextColor(Color::xyz(0.4811, 0.3064, 0.0253)),
                     ),
+                    // Restart Button
+                    (
+                        Button,
+                        RestartButton,
+                        Node {
+                            width: Val::Px(140.0),
+                            height: Val::Px(40.0),
+                            justify_content: JustifyContent::Center,
+                            align_items: AlignItems::Center,
+                            border: UiRect::all(Val::Px(2.0)),
+                            ..default()
+                        },
+                        BackgroundColor(Color::srgb(0.0, 0.0, 0.0)),
+                        Outline {
+                            width: Val::Px(3.0),
+                            offset: Default::default(),
+                            color: Color::xyz(0.4811, 0.3064, 0.0253),
+                        },
+                        children![
+                            (
+                                Text::new("RESTART"),
+                                TextFont {
+                                    font: solar_system_assets.font.clone(),
+                                    font_size: 18.0,
+                                    ..default()
+                                },
+                                TextColor(Color::xyz(0.4811, 0.3064, 0.0253)),
+                                TextLayout::new_with_justify(text_center),
+                            )
+                        ],
+                    ),
 
                 ],
             )
@@ -216,4 +253,35 @@ fn reset_game_end_timer(mut game_end: ResMut<GameEnd>, time: Res<Time>) {
     game_end.enabled = true;
     game_end.game_end_time = time.elapsed_secs() + game_end.game_end_time;
     game_end.ktype = 0.0;
+}
+
+fn handle_restart_button(
+    mut interactions: Query<(&Interaction, &mut BackgroundColor), (Changed<Interaction>, With<RestartButton>)>,
+    mut next_screen: ResMut<NextState<Screen>>,
+    mut score: ResMut<Score>,
+    mut game_end: ResMut<GameEnd>,
+    mut commands: Commands,
+    popup_q: Query<Entity, With<GameOverPopup>>,
+) {
+    for (interaction, mut bg) in interactions.iter_mut() {
+        match *interaction {
+            Interaction::Pressed => {
+                *score = Score::default();
+                game_end.ktype = 0.0;
+                game_end.enabled = false; // will be enabled on entering Gameplay
+                // Hide Game Over UI immediately
+                for e in popup_q.iter() {
+                    commands.entity(e).insert(Visibility::Hidden);
+                }
+                next_screen.set(Screen::Loading);
+                *bg = BackgroundColor(Color::srgb(0.1, 0.1, 0.1));
+            }
+            Interaction::Hovered => {
+                *bg = BackgroundColor(Color::srgb(0.05, 0.05, 0.05));
+            }
+            Interaction::None => {
+                *bg = BackgroundColor(Color::srgb(0.0, 0.0, 0.0));
+            }
+        }
+    }
 }

@@ -467,7 +467,7 @@ fn update_launch_pad_ui(
     time: Res<Time>,
     launch_state: Res<LaunchState>,
 ) {
-    let mut launch_bar_text = launch_bar_query.single_mut().unwrap();
+    let Some(mut launch_bar_text) = launch_bar_query.iter_mut().next() else { return; };
 
     if let Some(launch_start_time) = launch_state.launched_at_time {
         let held_duration = time.elapsed_secs_f64() - launch_start_time;
@@ -503,8 +503,8 @@ fn update_zoom_level (
     camera_query: Query<(&Camera, &Transform)>,
     mut zoom_level_query: Query<&mut Text, With<ZoomLevelText>>,
 ) {
-    let (_, transform) = camera_query.single().unwrap();
-    let mut zoom_level_text = zoom_level_query.single_mut().unwrap();
+    let Some((_, transform)) = camera_query.iter().next() else { return; };
+    let Ok(mut zoom_level_text) = zoom_level_query.single_mut() else { return; };
 
     let mut zoom_level = 1.0 / transform.scale.x;
     zoom_level = zoom_level / 4.0;
@@ -518,8 +518,8 @@ fn update_explanation_text(
     mut explanation_container_query: Query<&mut Visibility, With<ExplanationContainer>>,
     mut hud_state: ResMut<HudState>,
 ) {
-    let mut explanation_text = explanation_text_query.single_mut().unwrap();
-    let mut container_visibility = explanation_container_query.single_mut().unwrap();
+    let Some(mut explanation_text) = explanation_text_query.iter_mut().next() else { return; };
+    let Some(mut container_visibility) = explanation_container_query.iter_mut().next() else { return; };
 
     if !hud_state.already_pressed_space {
         if mouse_input.pressed(MouseButton::Left) {

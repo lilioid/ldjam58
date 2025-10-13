@@ -119,7 +119,13 @@ impl FromWorld for SolarSystemAssets {
     }
 }
 
-pub fn init_sun_system(mut commands: Commands, solar_system_assets: Res<SolarSystemAssets>) {
+pub fn init_sun_system(
+    mut commands: Commands,
+    solar_system_assets: Res<SolarSystemAssets>,
+    existing_suns: Query<Entity, With<Sun>>,
+) {
+    // Prevent spawning multiple suns across reloads
+    if existing_suns.iter().next().is_some() { return; }
     info!("Adding sun");
     commands.spawn((
         Attractor,

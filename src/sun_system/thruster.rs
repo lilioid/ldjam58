@@ -57,9 +57,7 @@ pub fn apply_thrust_force(
     mut query: Query<(&Thruster, &Velocity, &Transform, &mut ThrustForce)>,
     attractor: Query<&Transform, With<Attractor>>,
 ) {
-    let attractor = attractor
-        .single()
-        .expect("Cannot use thrusters in worlds with other than exactly one attractor");
+    let Some(attractor) = attractor.iter().next() else { return; };
 
     query
         .iter_mut()

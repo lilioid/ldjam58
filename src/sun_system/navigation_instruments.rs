@@ -20,9 +20,7 @@ pub fn draw_nav_projections(
     query: Query<(Entity, &Transform, &Mass, &Velocity, &HitBox, Option<&FullOrbitAwarded>), (With<NavigationInstruments>, With<Attractee>)>,
     mut commands: Commands,
 ) {
-    let (attractor_trans, attractor_mass, attractor_hitbox) = attractor
-        .single()
-        .expect("Cannot draw orbital projections if there is no attractor in the world");
+    let Some((attractor_trans, attractor_mass, attractor_hitbox)) = attractor.iter().next() else { return; };
 
     query.iter().for_each(|(entity, i_trans, i_mass, i_velocity, i_hitbox, awarded)| {
         draw_orbit_projection(

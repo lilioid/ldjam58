@@ -63,8 +63,8 @@ fn check_for_collisions(
 ) {
     // Track entities we already decided to destroy this system run to avoid duplicate events
     let mut destroyed_in_this_system: HashSet<Entity> = HashSet::new();
-    for (entity, entity_transform, hitbox1, isAttractor, isAttractee, level1) in hitboxes.iter() {
-        for (entity_check, check_transform, hitbox2, isAttractor2, isAttractee2, level2) in hitboxes.iter()
+    for (entity, entity_transform, hitbox1, is_attractor, is_attractee, level1) in hitboxes.iter() {
+        for (entity_check, check_transform, hitbox2, is_attractor2, is_attractee2, level2) in hitboxes.iter()
         {
             if (entity == entity_check) {
                 // no need to check collisions with self
@@ -80,7 +80,7 @@ fn check_for_collisions(
             if distance < (hitbox1.radius + hitbox2.radius) {
                 info!("crash");
 
-                if(isAttractor){
+                if(is_attractor){
                     info!("crash sun case");
                     // first sun, sun has level 0
                     if !destroyed_in_this_system.contains(&entity_check) {
@@ -90,7 +90,7 @@ fn check_for_collisions(
                         });
                         destroyed_in_this_system.insert(entity_check);
                     }
-                } else if (isAttractor2) {
+                } else if (is_attractor2) {
                 } else {
                     info!("crash Satellites");
 

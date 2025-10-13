@@ -29,10 +29,8 @@ fn handle_fatal_collision_event_for_sound(
     asteroid_swarm_query: Query<Entity, With<AsteroidSwarm>>,
     sun_query: Query<(), With<Sun>>,
 ) {
-    if let Ok(asteroid_swarm_entity) = asteroid_swarm_query.single() {
-        if event.destroyed == asteroid_swarm_entity {
-            return;
-        }
+    if let Some(asteroid_swarm_entity) = asteroid_swarm_query.iter().next() {
+        if event.destroyed == asteroid_swarm_entity { return; }
     }
     // Mute crash SFX when swallowed by the sun
     if sun_query.get(event.other).is_ok() {
