@@ -1,6 +1,6 @@
 pub mod navigation_instruments;
 pub mod thruster;
-mod earth;
+pub(crate) mod earth;
 pub(crate) mod asteroids;
 
 use crate::{AppSystems, GameplaySystem};

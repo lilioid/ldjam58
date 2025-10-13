@@ -2,7 +2,7 @@
 
 mod loading;
 mod gameplay;
-mod gameover;
+pub(crate) mod gameover;
 //mod splash;
 //mod title;
 

@@ -1,8 +1,8 @@
 use crate::GameplaySystem;
 use crate::collision::FatalCollisionEvent;
-use crate::launching::{LaunchPad, LaunchState};
+use crate::launching::{LaunchState};
 use crate::score::Score;
-use crate::screens::Screen;
+use crate::screens::{gameover, Screen};
 use crate::sun_system::{SolarSystemAssets, Sun};
 use crate::sun_system::asteroids::AsteroidSwarmSpawned;
 use bevy::prelude::*;
@@ -15,7 +15,7 @@ impl Plugin for HudPlugin {
         app.add_systems(OnEnter(Screen::Gameplay), setup_hud)
             .add_systems(
                 Update,
-                (update_hud, update_crash_indicators, update_launch_pad_ui, update_zoom_level, update_explanation_text, update_debris_warning).in_set(GameplaySystem),
+                (update_hud, update_crash_indicators, update_launch_pad_ui, update_zoom_level, update_explanation_text, update_debris_warning, update_countdown).in_set(GameplaySystem),
             );
         app.add_observer(handle_fatal_collision_event_for_hud);
         app.add_observer(handle_asteroid_swarm_spawned);
@@ -66,6 +66,9 @@ struct KardashevText;
 struct DebrisWarning {
     timer: Timer,
 }
+
+#[derive(Component)]
+struct CountdownText;
 
 fn setup_hud(mut commands: Commands, solar_system_assets: Res<SolarSystemAssets>) {
     // TOP LEFT: Energy Rate and Total Energy Storage
@@ -121,6 +124,42 @@ fn setup_hud(mut commands: Commands, solar_system_assets: Res<SolarSystemAssets>
     ));
 
     let text_center = Justify::Center;
+
+    // TOP RIGHT: Countdown to game end
+    commands.spawn((
+        Node {
+            position_type: PositionType::Absolute,
+            top: Val::Px(15.0),
+            right: Val::Px(15.0),
+            width: Val::Px(150.0),
+            height: Val::Px(60.0),
+            border: UiRect::all(Val::Px(BORDER)),
+            ..default()
+        },
+        BackgroundColor(Color::srgb(0.0, 0.0, 0.0)),
+        Outline {
+            width: Val::Px(2.0),
+            offset: Default::default(),
+            color: Color::xyz(0.4811, 0.3064, 0.0253),
+        },
+        children![
+            (
+                Text::new("TIME\n10:00"),
+                Node {
+                    position_type: PositionType::Relative,
+                    top: Val::Px(5.0),
+                    left: Val::Px(15.0),
+                    ..default()
+                },
+                TextFont {
+                    font: solar_system_assets.font.clone(),
+                    ..default()
+                },
+                TextColor(Color::xyz(0.4811, 0.3064, 0.0253)),
+                CountdownText
+            )
+        ],
+    ));
 
     // BOTTOM RIGHT: Launch Pad UI
     commands.spawn((
@@ -214,6 +253,8 @@ fn setup_hud(mut commands: Commands, solar_system_assets: Res<SolarSystemAssets>
             )
         ],
     ));
+
+    // Removed best-orbit stats UI
 
     //MIDDLE OF SCREEN: Explaination text
     commands.spawn((
@@ -520,4 +561,23 @@ fn handle_asteroid_swarm_spawned(
 
     warning.timer.reset();
     *visibility = Visibility::Visible;
+}
+
+
+fn update_countdown(
+    time: Res<Time>,
+    game_end: Option<Res<gameover::GameEnd>>,
+    mut query: Query<&mut Text, With<crate::hud::CountdownText>>,
+) {
+    let Ok(mut text) = query.single_mut() else { return; };
+    let Some(game_end) = game_end else { return; };
+
+    if !game_end.enabled {
+        return;
+    }
+
+    let remaining = (game_end.game_end_time - time.elapsed_secs()).max(0.0);
+    let mins = (remaining / 60.0).floor() as i32;
+    let secs = (remaining % 60.0).floor() as i32;
+    text.0 = format!("TIME\n{:02}:{:02}", mins, secs);
 }
