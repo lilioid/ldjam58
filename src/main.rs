@@ -16,6 +16,7 @@ mod sun_system;
 mod sound;
 mod trails;
 mod effects;
+mod achievements;
 
 use std::ops::{Deref, DerefMut};
 use crate::screens::Screen;
@@ -76,6 +77,7 @@ impl Plugin for AppPlugin {
             hud::HudPlugin,
             sound::SoundPlugin,
             trails::TrailsPlugin,
+            achievements::AchievementsPlugin,
         ));
         // Tell bevy that our AppSystems should always be executed in the below order
         app.configure_sets(
