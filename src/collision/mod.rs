@@ -1,6 +1,6 @@
 use crate::dev_tools::is_debug_enabled;
 use crate::physics::calc_gravity::{Attractee, Attractor};
-use crate::sun_system::{Level, Satellite, SolarSystemAssets};
+use crate::sun_system::{Level, SolarSystemAssets};
 use crate::{AppSystems, GameplaySystem};
 use bevy::color::palettes::basic::BLUE;
 use bevy::prelude::*;
@@ -66,7 +66,7 @@ fn check_for_collisions(
     for (entity, entity_transform, hitbox1, isAttractor, isAttractee, level1) in hitboxes.iter() {
         for (entity_check, check_transform, hitbox2, isAttractor2, isAttractee2, level2) in hitboxes.iter()
         {
-            if (entity == entity_check) {
+            if entity == entity_check {
                 // no need to check collisions with self
                 continue;
             }
@@ -80,7 +80,7 @@ fn check_for_collisions(
             if distance < (hitbox1.radius + hitbox2.radius) {
                 info!("crash");
 
-                if(isAttractor){
+                if isAttractor {
                     info!("crash sun case");
                     // first sun, sun has level 0
                     if !destroyed_in_this_system.contains(&entity_check) {
@@ -90,12 +90,12 @@ fn check_for_collisions(
                         });
                         destroyed_in_this_system.insert(entity_check);
                     }
-                } else if (isAttractor2) {
+                } else if isAttractor2 {
                 } else {
                     info!("crash Satellites");
 
                     // satellite 1
-                    if(level1.level == 1.) {
+                    if level1.level == 1. {
                         if !destroyed_in_this_system.contains(&entity) {
                             commands.trigger(FatalCollisionEvent {
                                 destroyed: entity,
@@ -131,19 +131,19 @@ fn check_for_collisions(
     }
 }
 
-fn handle_demote_collision_event(event: On<DemoteCollisionEvent>, mut commands: Commands, mut collector_query: Query<(Entity, &mut Level, &mut Sprite),  (With<Attractee>)>, assets: Res<SolarSystemAssets>) {
+fn handle_demote_collision_event(event: On<DemoteCollisionEvent>, mut commands: Commands, mut collector_query: Query<(Entity, &mut Level, &mut Sprite),  With<Attractee>>, assets: Res<SolarSystemAssets>) {
     let demoted_entity= commands
         .get_entity(event.demoted)
         .expect("Wanted to demote entity after collision but entity does not exist!") ;
     for (entity, mut level, mut sprite) in collector_query.iter_mut() {
         if demoted_entity.id() == entity {
-            if (level.level > 1.) {
+            if level.level > 1. {
                 level.level -= 1.;
             }
             if level.level == 1. {
                 //frm 2 to 1
                 *sprite = Sprite::from(assets.collector.clone());
-            } else if(level.level == 2.){
+            } else if level.level == 2. {
                 //reduce from lv3 to 2
                *sprite =  Sprite::from(assets.collector2.clone());
             } else{

@@ -8,7 +8,7 @@ pub struct TrailsPlugin;
 impl Plugin for TrailsPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Update, (record_history, render_trails).in_set(GameplaySystem));
-        app.add_systems(PostUpdate, (attach_trails_to_satellites));
+        app.add_systems(PostUpdate, attach_trails_to_satellites);
     }
 }
 

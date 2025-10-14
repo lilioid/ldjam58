@@ -5,15 +5,12 @@ pub(crate) mod asteroids;
 
 use crate::{AppSystems, GameplaySystem};
 use crate::asset_tracking::LoadResource;
-use crate::physics::calc_gravity::{Attractee, Attractor};
-use crate::physics::directional_forces::{GravityForce, Mass};
-use crate::physics::velocity::Velocity;
+use crate::physics::calc_gravity::Attractor;
+use crate::physics::directional_forces::Mass;
 use crate::screens::Screen;
-use crate::sun_system::navigation_instruments::NavigationInstruments;
-use crate::sun_system::thruster::{thruster_use_fuel, Thruster, ThrusterDirection};
+use crate::sun_system::thruster::thruster_use_fuel;
 use bevy::input::common_conditions::{input_just_pressed, input_just_released};
 use bevy::prelude::*;
-use bevy::window::PrimaryWindow;
 use crate::collision::HitBox;
 
 

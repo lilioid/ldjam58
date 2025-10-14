@@ -124,7 +124,7 @@ fn draw_vector_field(gizmos: &mut Gizmos, center: Vec2, start: Vec2, end: Vec2) 
         let mut x = start.x;
         while x <= end.x {
             let p = Vec2::new(x, y);
-            let dir = (center - p);
+            let dir = center - p;
             let dist = dir.length().max(1.0);
             let n = dir / dist;
             let len = (120.0 / dist).clamp(3.0, 14.0);
@@ -174,7 +174,7 @@ fn draw_streamlines(gizmos: &mut Gizmos, center: Vec2, start: Vec2, end: Vec2) {
         while x <= end.x {
             let mut p = Vec2::new(x, y);
             for _ in 0..h {
-                let dir = (center - p);
+                let dir = center - p;
                 let dist = dir.length().max(1.0);
                 let n = dir / dist;
                 let next = p + n * 20.0;

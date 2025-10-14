@@ -7,7 +7,6 @@ pub(crate) mod gameover;
 //mod title;
 
 use bevy::prelude::*;
-use crate::collision::FatalCollisionEvent;
 
 pub(super) fn plugin(app: &mut App) {
     app.init_state::<Screen>();

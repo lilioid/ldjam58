@@ -1,4 +1,3 @@
-use std::fmt::Debug;
 use bevy::color::palettes::basic::GREEN;
 use bevy::color::palettes::css::WHITE;
 use crate::GameplaySystem;
@@ -112,10 +111,10 @@ fn start_new_launch(
     force_multiplier = force_multiplier * 10.0;
     let sprite ;
     let lvl ;
-    if (score.energy_stored > 10000. && score.energy_stored <20000.){
+    if score.energy_stored > 10000. && score.energy_stored <20000. {
         lvl=2.;
         sprite = solar_system_assets.collector2.clone();
-    }else if (score.energy_stored >20000.){
+    }else if score.energy_stored >20000. {
         lvl=3.;
         sprite = solar_system_assets.collector3.clone();
     }else{
@@ -123,7 +122,7 @@ fn start_new_launch(
         sprite= solar_system_assets.collector.clone();        
     }
     info!("Pay energy");
-    if (score.energy_stored >= 0.2) {
+    if score.energy_stored >= 0.2 {
         score.energy_stored -= 0.2f32*lvl;
     } else {
         return;
@@ -193,7 +192,7 @@ fn screen_to_world(
 }
 
 fn record_touch_start(
-    mut er_touch: EventReader<TouchInput>,
+    mut er_touch: MessageReader<TouchInput>,
     time: Res<Time>,
     mut st: ResMut<LaunchState>,
     score: Res<Score>,
@@ -210,7 +209,7 @@ fn record_touch_start(
 }
 
 fn start_launch_from_touch_end(
-    mut er_touch: EventReader<TouchInput>,
+    mut er_touch: MessageReader<TouchInput>,
     mut commands: Commands,
     launch_pad_query: Query<&Transform, With<LaunchPad>>,
     window_q: Query<&Window, With<PrimaryWindow>>,
@@ -249,10 +248,10 @@ fn start_launch_from_touch_end(
 
     let sprite;
     let lvl;
-    if (score.energy_stored > 10000. && score.energy_stored <20000.){
+    if score.energy_stored > 10000. && score.energy_stored <20000. {
         lvl=2.;
         sprite = solar_system_assets.collector2.clone();
-    }else if (score.energy_stored >20000.){
+    }else if score.energy_stored >20000. {
         lvl=3.;
         sprite = solar_system_assets.collector3.clone();
     }else{
@@ -260,7 +259,7 @@ fn start_launch_from_touch_end(
         sprite= solar_system_assets.collector.clone();        
     }
     info!("Pay energy");
-    if (score.energy_stored >= 0.2) {
+    if score.energy_stored >= 0.2 {
         score.energy_stored -= 0.2f32*lvl;
     } else {
         return;
@@ -348,7 +347,7 @@ fn on_hover_collector_over(
 
 
 fn record_launch_time(time: Res<Time>, mut launch_state: ResMut<LaunchState>, score: Res<Score>) {
-    if (score.energy_stored < 0.2) {
+    if score.energy_stored < 0.2 {
         return;
     }
     if launch_state.launched_at_time.is_none() {
@@ -391,7 +390,7 @@ fn update_fuel_label(
 
 
 fn select_satellite_on_touch(
-    mut er_touch: EventReader<TouchInput>,
+    mut er_touch: MessageReader<TouchInput>,
     window_q: Query<&Window, With<PrimaryWindow>>,
     camera_query: Query<(&Camera, &GlobalTransform)>,
     mut commands: Commands,

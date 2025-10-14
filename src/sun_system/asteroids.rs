@@ -200,14 +200,14 @@ fn spawn_asteroids(
 }
 
 fn draw_swarm_debug(mut gizmos: Gizmos, query: Query<&GlobalTransform, With<AsteroidSwarm>>) {
-    query.iter().for_each(|(i_trans)| {
+    query.iter().for_each(|i_trans| {
         let isometry = Isometry2d::from_translation(i_trans.translation().xy());
         gizmos.circle_2d(isometry, 4.0, GREEN);
     });
 }
 
 fn draw_asteroid_debug(mut gizmos: Gizmos, query: Query<&GlobalTransform, With<Asteroid>>) {
-    query.iter().for_each(|(i_trans)| {
+    query.iter().for_each(|i_trans| {
         let isometry = Isometry2d::from_translation(i_trans.translation().xy());
         gizmos.circle_2d(isometry, 2.0, GREEN);
     });
