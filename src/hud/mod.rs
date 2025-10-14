@@ -508,7 +508,7 @@ fn update_zoom_level (
 
     let mut zoom_level = 1.0 / transform.scale.x;
     zoom_level = zoom_level / 4.0;
-    zoom_level_text.0 = format!("{:.1}x", zoom_level);
+    zoom_level_text.0 = format!("SL-021 | {:.1}x", zoom_level);
 }
 
 fn update_explanation_text(
