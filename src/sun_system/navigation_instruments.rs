@@ -87,7 +87,7 @@ fn draw_orbit_projection(
 
         // don't draw any more gizmos if we have covered 360°
         degrees_covered += last_trans.angle_to(projected_trans.translation.xy()) * 180.0 / PI;
-        if degrees_covered >= 355.0 {
+        if degrees_covered.abs() >= 355.0 {
             if !already_awarded {
                 // Trigger achievement once per satellite
                 commands.entity(entity).insert(FullOrbitAwarded);
