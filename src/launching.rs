@@ -39,6 +39,10 @@ pub struct Fuel {
 
 #[derive(Component)]
 pub struct FuelLabel;
+#[derive(Resource)]
+pub struct SatellitePriceFactor{
+    pub factor:f32,
+}
 
 #[derive(Resource)]
 pub struct LaunchArmed(pub bool);
@@ -63,6 +67,7 @@ pub(super) fn plugin(app: &mut App) {
             deactivate_old_sats.run_if(input_just_pressed(MouseButton::Left)),
             update_fuel_label,
             arm_launch_on_earth_tap,
+            record_touch_start,
             start_launch_from_touch_end,
             select_satellite_on_touch,
             sun_thruster_touch,
@@ -70,6 +75,7 @@ pub(super) fn plugin(app: &mut App) {
             .in_set(GameplaySystem),
     );
     app.insert_resource(LaunchState { launched_at_time: None, active_touch: None });
+    app.insert_resource(SatellitePriceFactor { factor: 500. });
 }
 
 pub fn make_launchpad() -> impl Bundle {
@@ -89,6 +95,7 @@ fn start_new_launch(
     mut launch_state: ResMut<LaunchState>,
     time: Res<Time>,
     mut score: ResMut<Score>,
+    satellite_price_factor: Res<SatellitePriceFactor>,
     current_marked: Query<Entity, With<NavigationInstruments>>,
 ) {
 
@@ -132,8 +139,8 @@ fn start_new_launch(
         sprite= solar_system_assets.collector.clone();        
     }
     info!("Pay energy");
-    if score.energy_stored >= 0.2 {
-        score.energy_stored -= 0.2f32*lvl;
+    if score.energy_stored >= satellite_price_factor.factor {
+        score.energy_stored -= satellite_price_factor.factor*lvl;
     } else {
         return;
     }
@@ -210,7 +217,9 @@ fn record_touch_start(
     time: Res<Time>,
     mut st: ResMut<LaunchState>,
     score: Res<Score>,
+    launch_armed: Res<LaunchArmed>,
 ) {
+    if !launch_armed.0 { return; }
     if score.energy_stored < 0.2 { return; }
     if st.active_touch.is_some() { return; }
     for t in er_touch.read() {
@@ -233,30 +242,41 @@ fn start_launch_from_touch_end(
     mut launch_armed: ResMut<LaunchArmed>,
     mut score: ResMut<Score>,
     current_marked: Query<Entity, With<NavigationInstruments>>,
+    time: Res<Time>,
 ) {
     let Some(launch_pad_transform) = launch_pad_query.iter().next() else { return; };
     let launch_position = launch_pad_transform.translation;
 
     if !launch_armed.0 { return; }
 
-    // any touch end counts as single-tap launch when armed
-    let mut screen_pos = None;
+    // find the matching touch end for an active launch touch (if any), otherwise use the first Ended event
+    let mut ended_for_active: Option<Vec2> = None;
+    let mut any_end: Option<Vec2> = None;
     for t in er_touch.read() {
         if t.phase == TouchPhase::Ended {
-            screen_pos = Some(t.position);
-            break;
+            if st.active_touch == Some(t.id) {
+                ended_for_active = Some(t.position);
+                break;
+            } else if any_end.is_none() {
+                any_end = Some(t.position);
+            }
         }
     }
+    let screen_pos = ended_for_active.or(any_end);
     let Some(screen_pos) = screen_pos else { return; };
 
     let Some(world_pos) = screen_to_world(&camera_query, &window_q, screen_pos) else { return; };
     let launch_direction = (world_pos.extend(0.0) - launch_position).normalize_or_zero();
     if launch_direction == Vec3::ZERO { return; }
 
-    info!("Launching new satellite (single-tap) towards {:?}", launch_direction);
-
-    // fixed force for single-tap launch
-    let force_multiplier: f64 = 1.0 * 10.0;
+    //force is dependent on how long the touch was held, same as mouse
+    let mut force_multiplier = if let Some(launch_start_time) = st.launched_at_time {
+        let held_duration = time.elapsed_secs_f64() - launch_start_time;
+        held_duration.min(1.0) // cap at 1 sec
+    } else {
+        0.1
+    };
+    force_multiplier *= 10.0;
 
     let sprite;
     let lvl;

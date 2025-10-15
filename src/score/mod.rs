@@ -81,6 +81,6 @@ fn update_score(
     } else {
         score.energy_rate = instant_rate;
     }
-
+    score.energy_rate += 42.; //base_rate;
     score.energy_stored += score.energy_rate * time.delta_secs();
 }

@@ -1,10 +1,13 @@
 use crate::GameplaySystem;
 use crate::collision::FatalCollisionEvent;
-use crate::launching::{LaunchState};
+use crate::launching::{LaunchState, SatellitePriceFactor};
 use crate::score::Score;
 use crate::screens::{gameover, Screen};
 use crate::sun_system::{SolarSystemAssets, Sun};
 use crate::sun_system::asteroids::AsteroidSwarmSpawned;
+
+// Generated at compile-time by build.rs
+include!(concat!(env!("OUT_DIR"), "/build_info.rs"));
 use bevy::prelude::*;
 use bevy::ui_render::stack_z_offsets::BORDER;
 
@@ -352,12 +355,14 @@ fn setup_hud(mut commands: Commands, solar_system_assets: Res<SolarSystemAssets>
 
 fn update_hud(
     player_data: Res<Score>,
+    time: Res<Time>,
+    price: Res<SatellitePriceFactor>,
     mut energy_rate_query: Query<
         (&mut Text, &EnergyRateText),
         (With<EnergyRateText>, Without<EnergyStorageText>),
     >,
     mut energy_storage_query: Query<
-        (&mut Text, &EnergyStorageText),
+        (&mut Text, &mut TextColor, &EnergyStorageText),
         (With<EnergyStorageText>, Without<EnergyRateText>),
     >,
 ) {
@@ -372,12 +377,31 @@ fn update_hud(
             )
         }
 
-        for (mut text, _) in energy_storage_query.iter_mut() {
+        for (mut text, mut _color, _) in energy_storage_query.iter_mut() {
             text.0 = format!(
                 "TOTAL:\n{} {:.0}YWh",
                 get_ascii_bar(percent_stored.clamp(0.0, 1.0)),
                 player_data.energy_stored
             )
+        }
+    }
+
+    // Flash the energy storage text red when there isn't enough energy to launch a satellite
+    let lvl: f32 = if player_data.energy_stored > 20_000.0 {
+        3.0
+    } else if player_data.energy_stored > 10_000.0 {
+        2.0
+    } else {
+        1.0
+    };
+    let required_energy = price.factor * lvl;
+    let insufficient = player_data.energy_stored < required_energy;
+    let blink_on = (time.elapsed_secs() * 6.0).sin() > 0.0; // ~1 Hz
+    for (_text, mut color, _) in energy_storage_query.iter_mut() {
+        if insufficient && blink_on {
+            color.0 = Color::srgb(1.0, 0.1, 0.1);
+        } else {
+            color.0 = Color::xyz(0.4811, 0.3064, 0.0253);
         }
     }
 }
@@ -578,5 +602,5 @@ fn update_countdown(
     let remaining = (game_end.game_end_time - time.elapsed_secs()).max(0.0);
     let mins = (remaining / 60.0).floor() as i32;
     let secs = (remaining % 60.0).floor() as i32;
-    text.0 = format!("SL-021|TIME\n{:02}:{:02}", mins, secs);
+    text.0 = format!("{}|TIME\n{:02}:{:02}", BUILD_LABEL, mins, secs);
 }

@@ -32,7 +32,7 @@ fn on_full_orbit(
     mut commands: Commands,
 ) {
     if let Ok(t) = q_t.get(ev.entity) {
-        commands.spawn(NeonCircleFx { center: t.translation.xy(), elapsed: 0.0, duration: 0.5 });
+        commands.spawn(NeonCircleFx { center: t.translation.xy(), elapsed: 0.2, duration: 1.0 });
     }
 }
 
