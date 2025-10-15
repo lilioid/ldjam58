@@ -2,14 +2,16 @@ use crate::asset_tracking::LoadResource;
 use crate::screens::Screen;
 use bevy::prelude::*;
 use crate::GameplaySystem;
-use crate::launching::{make_launchpad, LaunchPad};
+use crate::launching::{make_launchpad, LaunchPad, LaunchArmed};
 use crate::sun_system::Sun;
+use crate::collision::HitBox;
 
 pub(super) fn plugin(app: &mut App) {
     app.load_resource::<EarthAssets>();
     app.add_systems(OnEnter(Screen::Gameplay), init_earth);
     app.add_systems(Update, move_earth_around_sun.in_set(GameplaySystem));
     app.add_systems(Update, draw_arrow.in_set(GameplaySystem));
+    app.add_systems(Update, draw_earth_hover.in_set(GameplaySystem));
 }
 
 #[derive(Resource, Asset, Reflect, Debug, Clone)]
@@ -41,6 +43,7 @@ fn init_earth(mut commands: Commands, assets: Res<EarthAssets>) {
         Earth,
         Transform::from_translation(Vec3::new(100.0, 0.0, 0.0)).with_scale(Vec3::splat(0.004)),
         Sprite::from(assets.earth.clone()),
+        HitBox { radius: 10.0 },
         children![ 
             make_launchpad(),
         ]
@@ -97,4 +100,16 @@ fn draw_arrow(
     let arrow_end = earth_pos + direction * arrow_length;
 
     gizmos.arrow_2d(earth_pos, arrow_end, Color::xyz(0.1527, 0.0992, 0.0083));
+}
+fn draw_earth_hover(
+    mut gizmos: Gizmos,
+    earth_query: Query<(&Transform, &HitBox), With<Earth>>,
+    launch_armed: Res<LaunchArmed>,
+) {
+    if !launch_armed.0 { return; }
+    if let Ok((trans, hb)) = earth_query.single() {
+        let center = trans.translation.truncate();
+        let color = Color::srgb(0.89, 0.647, 0.306);
+        gizmos.circle_2d(center, hb.radius + 0.05, color);
+    }
 }

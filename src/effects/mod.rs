@@ -20,11 +20,11 @@ impl Default for SunFlameConfig {
     fn default() -> Self {
         Self {
             spikes: 64,
-            inner_r: 1.,
+            inner_r: 20.,
             outer_r: 22.0,
             speed: 0.1,
             variance: 12.0,
-            core: Color::srgb(1.00, 0.60, 0.10),
+            core: Color::srgb(1.00, 0.30, 0.05),
             glow: Color::srgb(1.00, 0.30, 0.05),
         }
     }
@@ -47,7 +47,6 @@ fn draw_sun_flames(
 ) {
     let Ok((gt, hb)) = sun.single() else { return; };
     let center = gt.translation().xy();
-    let iso = Isometry2d::from_translation(center);
 
     let t = time.elapsed_secs();
     let n = cfg.spikes.max(3) as i32;
@@ -58,8 +57,6 @@ fn draw_sun_flames(
     let inner_r = cfg.inner_r * effect_scale;
     let outer_r = cfg.outer_r * effect_scale;
     let variance = cfg.variance * effect_scale;
-
-    gizmos.circle_2d(iso, outer_r, cfg.glow.with_alpha(0.10));
 
     for i in 0..n {
         let base = i as f32 / n as f32;

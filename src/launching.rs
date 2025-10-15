@@ -8,7 +8,8 @@ use crate::physics::velocity::Velocity;
 use crate::score::{EnergyRateLabel, Score};
 use crate::sun_system::navigation_instruments::NavigationInstruments;
 use crate::sun_system::thruster::{Thruster, ThrusterDirection};
-use crate::sun_system::{Level, Satellite, SolarSystemAssets};
+use crate::sun_system::{Level, Satellite, SolarSystemAssets, Sun};
+use crate::sun_system::earth::Earth;
 use bevy::input::common_conditions::{input_just_pressed, input_just_released};
 use bevy::prelude::*;
 use bevy::window::PrimaryWindow;
@@ -39,24 +40,32 @@ pub struct Fuel {
 #[derive(Component)]
 pub struct FuelLabel;
 
+#[derive(Resource)]
+pub struct LaunchArmed(pub bool);
+
+impl Default for LaunchArmed {
+    fn default() -> Self { Self(true) }
+}
+
 #[derive(Resource, Default)]
-pub struct DoubleTapTracker {
-    pub last_tap_time: f64,
-    pub last_target: Option<Entity>,
+pub struct ThrusterTouch {
+    pub active_touch_id: Option<u64>,
 }
 
 pub(super) fn plugin(app: &mut App) {
-    app.init_resource::<DoubleTapTracker>();
+    app.init_resource::<LaunchArmed>();
+    app.init_resource::<ThrusterTouch>();
     app.add_systems(
         Update,
         (
             start_new_launch.run_if(input_just_released(MouseButton::Left)),
             record_launch_time.run_if(input_just_pressed(MouseButton::Left)),
-            deactivate_old_sats.run_if(input_just_released(MouseButton::Left)),
+            deactivate_old_sats.run_if(input_just_pressed(MouseButton::Left)),
             update_fuel_label,
-            record_touch_start,
+            arm_launch_on_earth_tap,
             start_launch_from_touch_end,
             select_satellite_on_touch,
+            sun_thruster_touch,
         )
             .in_set(GameplaySystem),
     );
@@ -80,6 +89,7 @@ fn start_new_launch(
     mut launch_state: ResMut<LaunchState>,
     time: Res<Time>,
     mut score: ResMut<Score>,
+    current_marked: Query<Entity, With<NavigationInstruments>>,
 ) {
 
     let Some(launch_pad_transform) = launch_pad_query.iter().next() else { return; };
@@ -126,6 +136,10 @@ fn start_new_launch(
         score.energy_stored -= 0.2f32*lvl;
     } else {
         return;
+    }
+    // Ensure only the newly launched satellite will be selected
+    for e in current_marked.iter() {
+        commands.entity(e).remove::<NavigationInstruments>();
     }
 let collector_id = commands.spawn((
         Fuel { amount: 1.5 },
@@ -216,18 +230,19 @@ fn start_launch_from_touch_end(
     camera_query: Query<(&Camera, &GlobalTransform)>,
     solar_system_assets: Res<SolarSystemAssets>,
     mut st: ResMut<LaunchState>,
-    time: Res<Time>,
+    mut launch_armed: ResMut<LaunchArmed>,
     mut score: ResMut<Score>,
-    thruster_query: Query<Entity, (With<Thruster>, With<NavigationInstruments>)>,
+    current_marked: Query<Entity, With<NavigationInstruments>>,
 ) {
     let Some(launch_pad_transform) = launch_pad_query.iter().next() else { return; };
     let launch_position = launch_pad_transform.translation;
 
-    // find the matching Ended for our active touch id
-    let Some(active) = st.active_touch else { return; };
+    if !launch_armed.0 { return; }
+
+    // any touch end counts as single-tap launch when armed
     let mut screen_pos = None;
     for t in er_touch.read() {
-        if t.id == active && t.phase == TouchPhase::Ended {
+        if t.phase == TouchPhase::Ended {
             screen_pos = Some(t.position);
             break;
         }
@@ -238,13 +253,10 @@ fn start_launch_from_touch_end(
     let launch_direction = (world_pos.extend(0.0) - launch_position).normalize_or_zero();
     if launch_direction == Vec3::ZERO { return; }
 
-    info!("Launching new satellite towards (touch) {:?}", launch_direction);
+    info!("Launching new satellite (single-tap) towards {:?}", launch_direction);
 
-    let mut force_multiplier = if let Some(launch_start_time) = st.launched_at_time {
-        let held_duration = time.elapsed_secs_f64() - launch_start_time;
-        held_duration.min(1.0)
-    } else { 0.1 };
-    force_multiplier *= 10.0;
+    // fixed force for single-tap launch
+    let force_multiplier: f64 = 1.0 * 10.0;
 
     let sprite;
     let lvl;
@@ -263,6 +275,10 @@ fn start_launch_from_touch_end(
         score.energy_stored -= 0.2f32*lvl;
     } else {
         return;
+    }
+    // Ensure only the newly launched satellite will be selected
+    for e in current_marked.iter() {
+        commands.entity(e).remove::<NavigationInstruments>();
     }
     let collector_id = commands.spawn((
         Fuel { amount: 1.5 },
@@ -315,13 +331,8 @@ fn start_launch_from_touch_end(
         Pickable::IGNORE,
     ));
 
-    // Deactivate navigation instruments and thrusters on all satellites after touch launch,
-    // to match desktop (mouse) behavior where previous selections are cleared.
-    for entity in thruster_query.iter() {
-        let mut ec = commands.get_entity(entity).unwrap();
-        ec.remove::<Thruster>();
-        ec.remove::<NavigationInstruments>();
-    }
+    // disarm after launch
+    launch_armed.0 = false;
 
     st.launched_at_time = None;
     st.active_touch = None;
@@ -394,10 +405,7 @@ fn select_satellite_on_touch(
     window_q: Query<&Window, With<PrimaryWindow>>,
     camera_query: Query<(&Camera, &GlobalTransform)>,
     mut commands: Commands,
-    mut tracker: ResMut<DoubleTapTracker>,
-    time: Res<Time>,
     sats: Query<(Entity, &GlobalTransform, &HitBox), With<Satellite>>,
-    mut thrusters: Query<&mut Thruster>,
     current_marked: Query<Entity, With<NavigationInstruments>>,
 ) {
     let Some((camera, cam_gt)) = camera_query.iter().next() else { return; };
@@ -411,14 +419,10 @@ fn select_satellite_on_touch(
         for (e, gt, hb) in sats.iter() {
             let sat_pos = gt.translation().truncate();
             let dist = sat_pos.distance(world_pos);
-            // consider hit if within hitbox radius (scaled by transform scale in X)
-            let scale_x = gt.to_scale_rotation_translation().0.x; // extract scale
-            let radius = hb.radius * scale_x;
+            let radius = hb.radius;
             if dist <= radius {
                 if let Some((_, best_dist)) = best {
-                    if dist < best_dist {
-                        best = Some((e, dist));
-                    }
+                    if dist < best_dist { best = Some((e, dist)); }
                 } else {
                     best = Some((e, dist));
                 }
@@ -426,31 +430,83 @@ fn select_satellite_on_touch(
         }
 
         if let Some((target, _)) = best {
-            let now = time.elapsed_secs_f64();
-            let is_double_tap = match tracker.last_target {
-                Some(prev) if prev == target && (now - tracker.last_tap_time) <= 0.35 => true,
-                _ => false,
-            };
-
-            if is_double_tap {
-                // Double tap: start thrusters on the selected satellite
-                if let Ok(mut thr) = thrusters.get_mut(target) {
-                    thr.active = true;
-                }
-            } else {
-                // Single tap: select only (NavigationInstruments)
-                commands.entity(target).insert(NavigationInstruments);
-                // remove selection from others
-                for e in current_marked.iter() {
-                    if e != target {
-                        commands.entity(e).remove::<NavigationInstruments>();
-                    }
+            // Single tap: select only (NavigationInstruments)
+            commands.entity(target).insert(NavigationInstruments);
+            // remove selection from others
+            for e in current_marked.iter() {
+                if e != target {
+                    commands.entity(e).remove::<NavigationInstruments>();
                 }
             }
-
-            // update tracker
-            tracker.last_tap_time = now;
-            tracker.last_target = Some(target);
         }
     }
 }
+
+fn arm_launch_on_earth_tap(
+    mut er_touch: MessageReader<TouchInput>,
+    window_q: Query<&Window, With<PrimaryWindow>>,
+    camera_query: Query<(&Camera, &GlobalTransform)>,
+    earth_q: Query<(&GlobalTransform, Option<&HitBox>), With<Earth>>,
+    mut launch_armed: ResMut<LaunchArmed>,
+) {
+    let Some((camera, cam_gt)) = camera_query.iter().next() else { return; };
+    let _ = window_q.iter().next() else { return; };
+
+    for t in er_touch.read() {
+        if t.phase != TouchPhase::Ended { continue; }
+        let Ok(world_pos) = camera.viewport_to_world_2d(cam_gt, t.position) else { continue; };
+        for (gt, hb_opt) in earth_q.iter() {
+            let earth_pos = gt.translation().truncate();
+            let dist = earth_pos.distance(world_pos);
+            let radius = hb_opt.map(|hb| hb.radius).unwrap_or(20.0);
+            if dist <= radius {
+                launch_armed.0 = true;
+                return;
+            }
+        }
+    }
+}
+
+fn sun_thruster_touch(
+    mut er_touch: MessageReader<TouchInput>,
+    window_q: Query<&Window, With<PrimaryWindow>>,
+    camera_query: Query<(&Camera, &GlobalTransform)>,
+    sun_q: Query<(&GlobalTransform, &HitBox), With<Sun>>,
+    mut selected_thruster: Query<(&mut Thruster, Entity), (With<NavigationInstruments>, With<Thruster>)>,
+    mut thr_touch: ResMut<ThrusterTouch>,
+) {
+    let Some((camera, cam_gt)) = camera_query.iter().next() else { return; };
+    let _ = window_q.iter().next() else { return; };
+
+    for t in er_touch.read() {
+        match t.phase {
+            TouchPhase::Started => {
+                if thr_touch.active_touch_id.is_some() { continue; }
+                let Ok(world_pos) = camera.viewport_to_world_2d(cam_gt, t.position) else { continue; };
+                // check hit on sun
+                for (gt, hb) in sun_q.iter() {
+                    let sun_pos = gt.translation().truncate();
+                    let dist = sun_pos.distance(world_pos);
+                    let radius = hb.radius;
+                    if dist <= radius {
+                        if let Ok((mut thr, _)) = selected_thruster.single_mut() {
+                            thr.active = true;
+                            thr_touch.active_touch_id = Some(t.id);
+                        }
+                        break;
+                    }
+                }
+            }
+            TouchPhase::Ended | TouchPhase::Canceled => {
+                if thr_touch.active_touch_id == Some(t.id) {
+                    if let Ok((mut thr, _)) = selected_thruster.single_mut() {
+                        thr.active = false;
+                    }
+                    thr_touch.active_touch_id = None;
+                }
+            }
+            _ => {}
+        }
+    }
+}
+

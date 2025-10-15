@@ -31,6 +31,7 @@ enum VizMode {
     Spirals,
     PolarRulers,
     Isochrones,
+    LeifDotted,
 }
 
 #[derive(Resource, Debug)]
@@ -39,12 +40,13 @@ struct GravityViz {
 }
 
 impl Default for GravityViz {
-    fn default() -> Self { Self { mode: VizMode::Equipotential } }
+    fn default() -> Self { Self { mode: VizMode::LeifDotted } }
 }
 
 fn cycle_mode(mut viz: ResMut<GravityViz>) {
     viz.mode = match viz.mode {
-        VizMode::Off => VizMode::Equipotential,
+        VizMode::Off => VizMode::LeifDotted,
+        VizMode::LeifDotted => VizMode::Equipotential,
         VizMode::Equipotential => VizMode::VectorField,
         VizMode::VectorField => VizMode::GravityWell,
         VizMode::GravityWell => VizMode::SlingshotCues,
@@ -99,6 +101,7 @@ fn draw_viz(
         VizMode::Spirals => draw_spirals(&mut gizmos, center, end),
         VizMode::PolarRulers => draw_polar_rulers(&mut gizmos, center, end),
         VizMode::Isochrones => draw_isochrones(&mut gizmos, center, end),
+        VizMode::LeifDotted => draw_dotted_iso_potentials(&mut gizmos, center, end),
         VizMode::Off => {}
     }
 }
@@ -335,3 +338,32 @@ fn draw_isochrones(gizmos: &mut Gizmos, center: Vec2, end: Vec2) {
 }
 
 
+
+
+fn draw_dotted_iso_potentials(gizmos: &mut Gizmos, center: Vec2, end: Vec2) {
+    // Render equipotential radii as dotted/ticked circumferences and skip the first three
+    let max_r = center.distance(end) * 1.1;
+    let mut r = 16.0;           // same base as draw_iso_potentials
+    let mut band_idx = 0usize;  // to skip first three rings
+
+    while r <= max_r {
+        if band_idx >= 3 {
+            // Angle sampling around the circle. Increase samples with radius for visual density.
+            let samples = ((r * 0.25).clamp(32.0, 96.0)) as i32; // 32..96 ticks per circle depending on radius
+            let alpha = (1.0 / (1.0 + r * 0.04)).min(0.6);
+            let color = Color::srgb(0.9, 0.8, 0.4).with_alpha(alpha * 0.45);
+
+            for s in 0..samples {
+                let a = s as f32 / samples as f32 * std::f32::consts::TAU;
+                let dir = Vec2::from_angle(a);
+                let p = center + dir * r;           // point on the circle
+                let t = Vec2::new(-dir.y, dir.x);   // tangent direction
+                // Short tangential tick centered on the circle point (similar style to radial_ticks)
+                let half = 2.0; // half-length of the tick
+                gizmos.line_2d(p - t * half, p + t * half, color);
+            }
+        }
+        band_idx += 1;
+        r += 24.0; // same spacing as draw_iso_potentials
+    }
+}

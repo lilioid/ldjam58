@@ -254,9 +254,8 @@ fn setup_hud(mut commands: Commands, solar_system_assets: Res<SolarSystemAssets>
         ],
     ));
 
-    // Removed best-orbit stats UI
 
-    //MIDDLE OF SCREEN: Explaination text
+    //MIDDLE OF SCREEN: Explanation text
     commands.spawn((
         Node {
             position_type: PositionType::Absolute,
@@ -508,7 +507,7 @@ fn update_zoom_level (
 
     let mut zoom_level = 1.0 / transform.scale.x;
     zoom_level = zoom_level / 4.0;
-    zoom_level_text.0 = format!("SL-021 | {:.1}x", zoom_level);
+    zoom_level_text.0 = format!("{:.1}x", zoom_level);
 }
 
 fn update_explanation_text(
@@ -579,5 +578,5 @@ fn update_countdown(
     let remaining = (game_end.game_end_time - time.elapsed_secs()).max(0.0);
     let mins = (remaining / 60.0).floor() as i32;
     let secs = (remaining % 60.0).floor() as i32;
-    text.0 = format!("TIME\n{:02}:{:02}", mins, secs);
+    text.0 = format!("SL-021|TIME\n{:02}:{:02}", mins, secs);
 }

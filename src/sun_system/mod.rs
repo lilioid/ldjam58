@@ -126,7 +126,7 @@ pub fn init_sun_system(mut commands: Commands, solar_system_assets: Res<SolarSys
         },
         Mass(100_000_000_000_000.0),
         Name::new("Sun"),
-        Transform::from_translation(Vec3::ZERO).with_scale(Vec3::splat(0.02)),
+        Transform::from_translation(Vec3::new(0.0, 0.0, 1.0)).with_scale(Vec3::splat(0.02)),
         Sprite::from(solar_system_assets.sun.clone()),
         Sun
     ));
