@@ -26,6 +26,7 @@ impl Plugin for HudPlugin {
             just_destroyed: None,
             already_pressed_space: false,
             already_pressed_lmb: false,
+            is_mobile: false,
         });
     }
 }
@@ -60,6 +61,7 @@ struct HudState {
     just_destroyed: Option<Entity>,
     already_pressed_space: bool,
     already_pressed_lmb: bool,
+    is_mobile: bool,
 }
 
 #[derive(Component)]
@@ -537,6 +539,7 @@ fn update_zoom_level (
 fn update_explanation_text(
     keyboard_input: Res<ButtonInput<KeyCode>>,
     mouse_input: Res<ButtonInput<MouseButton>>,
+    mut er_touch: MessageReader<bevy::input::touch::TouchInput>,
     mut explanation_text_query: Query<&mut Text, With<ExplanationText>>,
     mut explanation_container_query: Query<&mut Visibility, With<ExplanationContainer>>,
     mut hud_state: ResMut<HudState>,
@@ -544,15 +547,40 @@ fn update_explanation_text(
     let mut explanation_text = explanation_text_query.single_mut().unwrap();
     let mut container_visibility = explanation_container_query.single_mut().unwrap();
 
-    if !hud_state.already_pressed_space {
-        if mouse_input.pressed(MouseButton::Left) {
-            hud_state.already_pressed_space = true;
-            explanation_text.0 = "PRESS SPACE TO SLOW DOWN".to_string();
+    // Mobile detection based on presence of touch events (runtime, no web_sys needed)
+    let mut saw_touch = false;
+    for _ in er_touch.read() { saw_touch = true; break; }
+    if saw_touch { hud_state.is_mobile = true; }
+
+    if hud_state.is_mobile {
+        // Mobile placeholder explanations
+        if !hud_state.already_pressed_space {
+            // First message: how to launch
+            explanation_text.0 = "TAP EARTH AND RELEASE TO LAUNCH".to_string();
+            if saw_touch {
+                hud_state.already_pressed_space = true;
+                explanation_text.0 = "TAP THE SUN TO activate THRUSTER".to_string();
+            }
+        } else if !hud_state.already_pressed_lmb {
+            // Second interaction hides the hint box
+            if saw_touch {
+                hud_state.already_pressed_lmb = true;
+                *container_visibility = Visibility::Hidden;
+            }
         }
-    } else if !hud_state.already_pressed_lmb {
-        if keyboard_input.pressed(KeyCode::Space) {
-            hud_state.already_pressed_lmb = true;
-            *container_visibility = Visibility::Hidden;
+        return;
+    }else {
+        // Desktop (mouse/keyboard) behavior stays unchanged
+        if !hud_state.already_pressed_space {
+            if mouse_input.pressed(MouseButton::Left) {
+                hud_state.already_pressed_space = true;
+                explanation_text.0 = "PRESS SPACE TO SLOW DOWN".to_string();
+            }
+        } else if !hud_state.already_pressed_lmb {
+            if keyboard_input.pressed(KeyCode::Space) {
+                hud_state.already_pressed_lmb = true;
+                *container_visibility = Visibility::Hidden;
+            }
         }
     }
 }

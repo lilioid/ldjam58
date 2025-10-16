@@ -38,19 +38,15 @@ impl Thruster {
     }
 }
 
-pub fn toggle_thruster(mut query: Query<(&mut Thruster, Option<&Name>)>) {
-    query.iter_mut().for_each(|(mut thruster, name)| {
-        info!(
-            "Toggling thruster of {} {}",
-            match name {
-                Some(name) => name.as_str(),
-                None => "unknown",
-            },
-            if thruster.active { "off" } else { "on" },
-        );
-
-        thruster.active = !thruster.active;
-    })
+pub fn toggle_thruster(mut query: Query<(&mut Thruster, &Fuel)>) {
+    for (mut thruster, fuel) in query.iter_mut() {
+        if fuel.amount > 0.0 {
+            thruster.active = !thruster.active;
+        } else {
+            // Make sure it never flips on when empty
+            thruster.active = false;
+        }
+    }
 }
 
 pub fn apply_thrust_force(

@@ -21,7 +21,7 @@ mod achievements;
 use std::ops::{Deref, DerefMut};
 use crate::screens::Screen;
 use bevy::log::LogPlugin;
-use bevy::window::WindowResolution;
+use bevy::window::{PresentMode, WindowResolution};
 use bevy::{asset::AssetMetaCheck, prelude::*};
 use rand::SeedableRng;
 use rand_chacha::ChaCha8Rng;

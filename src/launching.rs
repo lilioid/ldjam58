@@ -218,9 +218,10 @@ fn record_touch_start(
     mut st: ResMut<LaunchState>,
     score: Res<Score>,
     launch_armed: Res<LaunchArmed>,
+    price: Res<SatellitePriceFactor>,
 ) {
     if !launch_armed.0 { return; }
-    if score.energy_stored < 0.2 { return; }
+    if score.energy_stored < price.factor { return; }
     if st.active_touch.is_some() { return; }
     for t in er_touch.read() {
         if t.phase == TouchPhase::Started {
@@ -243,6 +244,7 @@ fn start_launch_from_touch_end(
     mut score: ResMut<Score>,
     current_marked: Query<Entity, With<NavigationInstruments>>,
     time: Res<Time>,
+    price: Res<SatellitePriceFactor>
 ) {
     let Some(launch_pad_transform) = launch_pad_query.iter().next() else { return; };
     let launch_position = launch_pad_transform.translation;
@@ -291,8 +293,8 @@ fn start_launch_from_touch_end(
         sprite= solar_system_assets.collector.clone();        
     }
     info!("Pay energy");
-    if score.energy_stored >= 0.2 {
-        score.energy_stored -= 0.2f32*lvl;
+    if score.energy_stored >= price.factor {
+        score.energy_stored -= price.factor*lvl;
     } else {
         return;
     }
@@ -364,7 +366,7 @@ fn on_hover_collector_over(
     query: Query<Entity, With<NavigationInstruments>>,
 ) {
     // Hover only indicates potential selection; do not modify thrusters here
-    println!("hover over collector {:?}", ev.entity);
+    //println!("hover over collector {:?}", ev.entity);
     commands.entity(ev.entity).insert(NavigationInstruments);
 
     // Remove selection marker from others
@@ -377,8 +379,9 @@ fn on_hover_collector_over(
 
 
 
-fn record_launch_time(time: Res<Time>, mut launch_state: ResMut<LaunchState>, score: Res<Score>) {
-    if score.energy_stored < 0.2 {
+fn record_launch_time(time: Res<Time>, mut launch_state: ResMut<LaunchState>, score: Res<Score>,
+                      price: Res<SatellitePriceFactor>) {
+    if score.energy_stored < price.factor {
         return;
     }
     if launch_state.launched_at_time.is_none() {
