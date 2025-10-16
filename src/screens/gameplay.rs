@@ -70,7 +70,7 @@ fn camera_zoom(
         transform.scale = Vec3::splat(zoom_level);
     }
 }
-
+#[allow(deprecated)]
 fn camera_pinch_zoom(
     mut pinch: ResMut<PinchZoomState>,
     mut er_touch: EventReader<TouchInput>,
@@ -108,9 +108,9 @@ fn camera_pinch_zoom(
                 // same zoom levels as mouse
                 let zoom_levels = [0.1, 0.15, 0.25, 0.5, 0.75];
                 if delta > 0.0 && camera_zoom.level < zoom_levels.len() - 1 {
-                    camera_zoom.level += 1;
-                } else if delta < 0.0 && camera_zoom.level > 0 {
                     camera_zoom.level -= 1;
+                } else if delta < 0.0 && camera_zoom.level > 0 {
+                    camera_zoom.level += 1;
                 }
                 let zoom_level = zoom_levels[camera_zoom.level];
                 transform.scale = Vec3::splat(zoom_level);

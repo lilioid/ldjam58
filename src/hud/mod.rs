@@ -10,6 +10,7 @@ use crate::sun_system::asteroids::AsteroidSwarmSpawned;
 include!(concat!(env!("OUT_DIR"), "/build_info.rs"));
 use bevy::prelude::*;
 use bevy::ui_render::stack_z_offsets::BORDER;
+use crate::sound::Music;
 
 pub struct HudPlugin;
 
@@ -18,7 +19,18 @@ impl Plugin for HudPlugin {
         app.add_systems(OnEnter(Screen::Gameplay), setup_hud)
             .add_systems(
                 Update,
-                (update_hud, update_crash_indicators, update_launch_pad_ui, update_zoom_level, update_explanation_text, update_debris_warning, update_countdown).in_set(GameplaySystem),
+                (
+                    update_hud,
+                    update_crash_indicators,
+                    update_launch_pad_ui,
+                    update_zoom_level,
+                    update_explanation_text,
+                    update_debris_warning,
+                    update_countdown,
+                    handle_music_button,
+                    update_music_button_visual,
+                )
+                .in_set(GameplaySystem),
             );
         app.add_observer(handle_fatal_collision_event_for_hud);
         app.add_observer(handle_asteroid_swarm_spawned);
@@ -65,9 +77,6 @@ struct HudState {
 }
 
 #[derive(Component)]
-struct KardashevText;
-
-#[derive(Component)]
 struct DebrisWarning {
     timer: Timer,
 }
@@ -75,9 +84,15 @@ struct DebrisWarning {
 #[derive(Component)]
 struct CountdownText;
 
+// Music button components
+#[derive(Component)]
+struct MusicButton;
+#[derive(Component)]
+struct MusicButtonText;
+
 fn setup_hud(mut commands: Commands, solar_system_assets: Res<SolarSystemAssets>) {
     // TOP LEFT: Energy Rate and Total Energy Storage
-    let container = commands.spawn((
+    commands.spawn((
         Node {
             position_type: PositionType::Absolute,
             top: Val::Px(15.0),
@@ -124,6 +139,41 @@ fn setup_hud(mut commands: Commands, solar_system_assets: Res<SolarSystemAssets>
                 },
                 TextColor(Color::xyz(0.4811, 0.3064, 0.0253)),
                 EnergyStorageText
+            )
+        ],
+    ));
+
+    // BOTTOM LEFT — Music toggle button (to the right of the zoom indicator)
+    commands.spawn((
+        Node {
+            position_type: PositionType::Absolute,
+            bottom: Val::Px(15.0),
+            left: Val::Px(110.0),
+            width: Val::Px(80.0),
+            height: Val::Px(50.0),
+            border: UiRect::all(Val::Px(BORDER)),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            ..default()
+        },
+        BackgroundColor(Color::srgb(0.0, 0.0, 0.0)),
+        Outline {
+            width: Val::Px(2.0),
+            offset: Default::default(),
+            color: Color::xyz(0.4811, 0.3064, 0.0253),
+        },
+        Button,
+        MusicButton,
+        children![
+            (
+                Text::new("[)] )))"),
+                TextFont {
+                    font: solar_system_assets.font.clone(),
+                    font_size: 16.0,
+                    ..default()
+                },
+                TextColor(Color::xyz(0.4811, 0.3064, 0.0253)),
+                MusicButtonText,
             )
         ],
     ));
@@ -513,7 +563,7 @@ fn get_vertical_ascii_bar(percentage: f32) -> String {
 
     for i in 0..total_bars {
         if i >= (total_bars - filled_bars) {
-            result.push('║');
+            result.push('█');
         } else {
             result.push('│');
         }
@@ -559,7 +609,7 @@ fn update_explanation_text(
             explanation_text.0 = "TAP EARTH AND RELEASE TO LAUNCH".to_string();
             if saw_touch {
                 hud_state.already_pressed_space = true;
-                explanation_text.0 = "TAP THE SUN TO activate THRUSTER".to_string();
+                explanation_text.0 = "TAP THE SUN TO ACTIVATE THRUSTER".to_string();
             }
         } else if !hud_state.already_pressed_lmb {
             // Second interaction hides the hint box
@@ -630,5 +680,42 @@ fn update_countdown(
     let remaining = (game_end.game_end_time - time.elapsed_secs()).max(0.0);
     let mins = (remaining / 60.0).floor() as i32;
     let secs = (remaining % 60.0).floor() as i32;
-    text.0 = format!("{}|TIME\n{:02}:{:02}", BUILD_LABEL, mins, secs);
+    text.0 = format!("{}\n{:02}:{:02}s", BUILD_LABEL, mins, secs);
+}
+
+// --- Music toggle HUD systems ---
+fn update_music_button_visual(
+    music_exists: Query<(), With<Music>>,
+    mut text_q: Query<&mut Text, With<MusicButtonText>>,
+) {
+    let Ok(mut text) = text_q.single_mut() else { return; };
+    let speaker_on = "[)] )))";
+    let speaker_off = "[)] x";
+
+    if music_exists.iter().next().is_some() {
+        text.0 = speaker_on.to_string();
+    } else {
+        text.0 = speaker_off.to_string();
+    }
+}
+
+fn handle_music_button(
+    mut commands: Commands,
+    assets: Res<SolarSystemAssets>,
+    mut q: Query<&Interaction, (With<MusicButton>, Changed<Interaction>)>,
+    music_q: Query<Entity, With<Music>>,
+) {
+    for interaction in &mut q {
+        if *interaction == Interaction::Pressed {
+            if let Ok(e) = music_q.single() {
+                commands.entity(e).despawn();
+            } else {
+                commands.spawn((
+                    AudioPlayer::new(assets.music_loop.clone()),
+                    PlaybackSettings::LOOP,
+                    Music,
+                ));
+            }
+        }
+    }
 }

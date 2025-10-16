@@ -1,3 +1,4 @@
+#![allow(deprecated)]
 use bevy::color::palettes::basic::GREEN;
 use bevy::color::palettes::css::WHITE;
 use crate::GameplaySystem;
@@ -29,7 +30,7 @@ pub struct LaunchState {
 #[derive(Component)]
 pub struct CollectorStats {
     pub energy_rate: f32,
-    pub total_collected: f32
+    pub _total_collected: f32 // future feature
 }
 
 #[derive(Component)]
@@ -48,7 +49,7 @@ pub struct SatellitePriceFactor{
 pub struct LaunchArmed(pub bool);
 
 impl Default for LaunchArmed {
-    fn default() -> Self { Self(true) }
+    fn default() -> Self { Self(false) }
 }
 
 #[derive(Resource, Default)]
@@ -72,6 +73,7 @@ pub(super) fn plugin(app: &mut App) {
             select_satellite_on_touch,
             sun_thruster_touch,
         )
+            .chain()
             .in_set(GameplaySystem),
     );
     app.insert_resource(LaunchState { launched_at_time: None, active_touch: None });
@@ -165,7 +167,7 @@ let collector_id = commands.spawn((
         Satellite,
         CollectorStats {
             energy_rate: 0.0,
-            total_collected: 0.0,
+            _total_collected: 0.0,
         },
         Pickable::default(),
     ))
@@ -213,7 +215,7 @@ fn screen_to_world(
 }
 
 fn record_touch_start(
-    mut er_touch: MessageReader<TouchInput>,
+    mut er_touch: EventReader<TouchInput>,
     time: Res<Time>,
     mut st: ResMut<LaunchState>,
     score: Res<Score>,
@@ -233,7 +235,7 @@ fn record_touch_start(
 }
 
 fn start_launch_from_touch_end(
-    mut er_touch: MessageReader<TouchInput>,
+    mut er_touch: EventReader<TouchInput>,
     mut commands: Commands,
     launch_pad_query: Query<&Transform, With<LaunchPad>>,
     window_q: Query<&Window, With<PrimaryWindow>>,
@@ -251,20 +253,15 @@ fn start_launch_from_touch_end(
 
     if !launch_armed.0 { return; }
 
-    // find the matching touch end for an active launch touch (if any), otherwise use the first Ended event
-    let mut ended_for_active: Option<Vec2> = None;
-    let mut any_end: Option<Vec2> = None;
+    // Only launch if we have an active touch and we see its matching Ended
+    let Some(active_id) = st.active_touch else { return; };
+    let mut screen_pos: Option<Vec2> = None;
     for t in er_touch.read() {
-        if t.phase == TouchPhase::Ended {
-            if st.active_touch == Some(t.id) {
-                ended_for_active = Some(t.position);
-                break;
-            } else if any_end.is_none() {
-                any_end = Some(t.position);
-            }
+        if t.phase == TouchPhase::Ended && t.id == active_id {
+            screen_pos = Some(t.position);
+            break;
         }
     }
-    let screen_pos = ended_for_active.or(any_end);
     let Some(screen_pos) = screen_pos else { return; };
 
     let Some(world_pos) = screen_to_world(&camera_query, &window_q, screen_pos) else { return; };
@@ -319,7 +316,7 @@ fn start_launch_from_touch_end(
         Satellite,
         CollectorStats {
             energy_rate: 0.0,
-            total_collected: 0.0,
+            _total_collected: 0.0,
         },
         Pickable::default(),
     ))
@@ -424,7 +421,7 @@ fn update_fuel_label(
 
 
 fn select_satellite_on_touch(
-    mut er_touch: MessageReader<TouchInput>,
+    mut er_touch: EventReader<TouchInput>,
     window_q: Query<&Window, With<PrimaryWindow>>,
     camera_query: Query<(&Camera, &GlobalTransform)>,
     mut commands: Commands,
@@ -466,7 +463,7 @@ fn select_satellite_on_touch(
 }
 
 fn arm_launch_on_earth_tap(
-    mut er_touch: MessageReader<TouchInput>,
+    mut er_touch: EventReader<TouchInput>,
     window_q: Query<&Window, With<PrimaryWindow>>,
     camera_query: Query<(&Camera, &GlobalTransform)>,
     earth_q: Query<(&GlobalTransform, Option<&HitBox>), With<Earth>>,
@@ -476,7 +473,7 @@ fn arm_launch_on_earth_tap(
     let _ = window_q.iter().next() else { return; };
 
     for t in er_touch.read() {
-        if t.phase != TouchPhase::Ended { continue; }
+        if t.phase != TouchPhase::Started { continue; }
         let Ok(world_pos) = camera.viewport_to_world_2d(cam_gt, t.position) else { continue; };
         for (gt, hb_opt) in earth_q.iter() {
             let earth_pos = gt.translation().truncate();
@@ -491,7 +488,7 @@ fn arm_launch_on_earth_tap(
 }
 
 fn sun_thruster_touch(
-    mut er_touch: MessageReader<TouchInput>,
+    mut er_touch: EventReader<TouchInput>,
     window_q: Query<&Window, With<PrimaryWindow>>,
     camera_query: Query<(&Camera, &GlobalTransform)>,
     sun_q: Query<(&GlobalTransform, &HitBox), With<Sun>>,

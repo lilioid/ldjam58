@@ -28,7 +28,7 @@ fn red_star_conversion(
 
     state.converted = true;
 
-    if let Ok((sun_entity, mut sun_t, mut sun_hitbox, mut sun_sprite)) = sun_q.single_mut() {
+    if let Ok((_sun_entity, mut sun_t, mut sun_hitbox, mut sun_sprite)) = sun_q.single_mut() {
         // Visual: make sun slightly bigger and swap sprite to red sun
         sun_t.scale *= 1.25;
         sun_hitbox.radius *= 1.70;
